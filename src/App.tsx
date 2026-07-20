@@ -23,6 +23,33 @@ const themeCopy = {
   poster: { eyebrow: 'Anyang · Platform for two', chapter: 'One way, together', edition: 'Poster No. 0220' },
 } as const
 
+const focusableSelector = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',')
+
+function trapDialogFocus(event: KeyboardEvent, container: HTMLElement | null) {
+  if (event.key !== 'Tab' || !container) return
+  const focusable = Array.from(container.querySelectorAll<HTMLElement>(focusableSelector))
+    .filter((element) => !element.hidden && element.getAttribute('aria-hidden') !== 'true')
+  if (focusable.length === 0) return
+
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+  const active = document.activeElement
+  if (event.shiftKey && (active === first || !container.contains(active))) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && (active === last || !container.contains(active))) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+
 function App() {
   const route = resolveRoute(window.location.pathname)
 
@@ -308,6 +335,7 @@ function InfoTabs({ tab, setTab }: { tab: 'transit' | 'parking' | 'gift'; setTab
 
 function Lightbox({ index, setIndex, close }: { index: number; setIndex: (index: number) => void; close: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
   const count = wedding.gallery.length
   useEffect(() => {
     closeRef.current?.focus()
@@ -315,25 +343,30 @@ function Lightbox({ index, setIndex, close }: { index: number; setIndex: (index:
       if (event.key === 'Escape') close()
       if (event.key === 'ArrowLeft') setIndex((index - 1 + count) % count)
       if (event.key === 'ArrowRight') setIndex((index + 1) % count)
+      trapDialogFocus(event, dialogRef.current)
     }
     document.body.classList.add('modal-open')
     window.addEventListener('keydown', onKey)
     return () => { document.body.classList.remove('modal-open'); window.removeEventListener('keydown', onKey) }
   }, [close, count, index, setIndex])
   const photo = wedding.gallery[index]
-  return <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => event.currentTarget === event.target && close()}><div className="lightbox" role="dialog" aria-modal="true" aria-label={`웨딩 사진 ${index + 1} / ${count}`}><button ref={closeRef} className="dialog-close" type="button" onClick={close} aria-label="사진 닫기">×</button><img src={photo.src} alt={photo.alt} /><p>{String(index + 1).padStart(2,'0')} / {count}</p><div><button type="button" onClick={() => setIndex((index - 1 + count) % count)} aria-label="이전 사진">← 이전</button><button type="button" onClick={() => setIndex((index + 1) % count)} aria-label="다음 사진">다음 →</button></div></div></div>
+  return <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => event.currentTarget === event.target && close()}><div ref={dialogRef} className="lightbox" role="dialog" aria-modal="true" aria-label={`웨딩 사진 ${index + 1} / ${count}`}><button ref={closeRef} className="dialog-close" type="button" onClick={close} aria-label="사진 닫기">×</button><img src={photo.src} alt={photo.alt} /><p>{String(index + 1).padStart(2,'0')} / {count}</p><div><button type="button" onClick={() => setIndex((index - 1 + count) % count)} aria-label="이전 사진">← 이전</button><button type="button" onClick={() => setIndex((index + 1) % count)} aria-label="다음 사진">다음 →</button></div></div></div>
 }
 
 function RsvpDialog({ close, status, setStatus }: { close: () => void; status: string; setStatus: (status: string) => void }) {
   const closeRef = useRef<HTMLButtonElement>(null)
+  const dialogRef = useRef<HTMLElement>(null)
   useEffect(() => {
     closeRef.current?.focus()
-    const onKey = (event: KeyboardEvent) => event.key === 'Escape' && close()
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') close()
+      trapDialogFocus(event, dialogRef.current)
+    }
     document.body.classList.add('modal-open'); window.addEventListener('keydown', onKey)
     return () => { document.body.classList.remove('modal-open'); window.removeEventListener('keydown', onKey) }
   }, [close])
   const submit = (event: FormEvent) => { event.preventDefault(); setStatus('샘플 확인을 완료했습니다. 입력 내용은 저장하거나 전송하지 않았습니다.') }
-  return <div className="dialog-backdrop" role="presentation"><section className="rsvp-dialog" role="dialog" aria-modal="true" aria-labelledby="rsvp-title"><button ref={closeRef} className="dialog-close" type="button" onClick={close} aria-label="참석 여부 창 닫기">×</button><p>RSVP · SAMPLE</p><h2 id="rsvp-title">참석 여부 전달하기</h2><div className="privacy-note">현재는 화면 확인용 샘플입니다. 어떠한 정보도 저장·전송하지 않습니다.</div><form onSubmit={submit}><fieldset><legend>참석 여부</legend><label><input type="radio" name="attendance" value="attending" defaultChecked /> 참석합니다</label><label><input type="radio" name="attendance" value="celebrating" /> 마음으로 축하합니다</label></fieldset><label>성함<input type="text" placeholder="샘플 입력" required maxLength={30} autoComplete="name" /></label><label>구분<select defaultValue="" required><option value="" disabled>선택해 주세요</option><option>신랑 측</option><option>신부 측</option></select></label><button className="primary-button" type="submit">샘플 확인하기</button><p role="status">{status}</p></form></section></div>
+  return <div className="dialog-backdrop" role="presentation"><section ref={dialogRef} className="rsvp-dialog" role="dialog" aria-modal="true" aria-labelledby="rsvp-title"><button ref={closeRef} className="dialog-close" type="button" onClick={close} aria-label="참석 여부 창 닫기">×</button><p>RSVP · SAMPLE</p><h2 id="rsvp-title">참석 여부 전달하기</h2><div className="privacy-note">현재는 화면 확인용 샘플입니다. 어떠한 정보도 저장·전송하지 않습니다.</div><form onSubmit={submit}><fieldset><legend>참석 여부</legend><label><input type="radio" name="attendance" value="attending" defaultChecked /> 참석합니다</label><label><input type="radio" name="attendance" value="celebrating" /> 마음으로 축하합니다</label></fieldset><label>성함<input type="text" placeholder="샘플 입력" required maxLength={30} autoComplete="name" /></label><label>구분<select defaultValue="" required><option value="" disabled>선택해 주세요</option><option>신랑 측</option><option>신부 측</option></select></label><button className="primary-button" type="submit">샘플 확인하기</button><p role="status">{status}</p></form></section></div>
 }
 
 function ConceptNavigation({ current }: { current: Concept }) {
