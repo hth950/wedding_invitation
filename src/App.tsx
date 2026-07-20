@@ -1,30 +1,44 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { concepts, type Concept } from './data/concepts'
+import { february2027, getDday, wedding } from './data/wedding'
 import { resolveRoute } from './lib/routes'
 
-const SAMPLE_NOTICE =
-  '현재는 구조와 분위기를 비교하기 위한 예시입니다. 보내주실 레퍼런스를 받은 뒤 사진, 문구, 색감과 인터랙션을 새롭게 반영합니다.'
+type Theme = 'letter' | 'cinema' | 'poster'
+
+const themeBySlug: Record<Concept['slug'], Theme> = {
+  'concept-a': 'letter',
+  'concept-b': 'cinema',
+  'concept-c': 'poster',
+}
+
+const heroByTheme: Record<Theme, string> = {
+  letter: '/images/wedding/01128.webp',
+  cinema: '/images/wedding/01813.webp',
+  poster: '/images/wedding/01782.webp',
+}
+
+const themeCopy = {
+  letter: { eyebrow: 'A letter for our favorite people', chapter: '첫빛의 편지', edition: 'Romantic paper edition' },
+  cinema: { eyebrow: 'A film by Taehwan & Hyojin', chapter: 'Midnight Cinema', edition: 'Chapter 01 · The beginning' },
+  poster: { eyebrow: 'Anyang · Platform for two', chapter: 'One way, together', edition: 'Poster No. 0220' },
+} as const
 
 function App() {
   const route = resolveRoute(window.location.pathname)
 
   useEffect(() => {
-    const pageTitle =
-      route.kind === 'home'
-        ? 'Wedding Invitation — Concept Lab'
-        : route.kind === 'concept'
-          ? `${route.concept.title} — Wedding Invitation`
-          : '페이지를 찾을 수 없습니다 — Wedding Invitation'
-    document.title = pageTitle
+    document.title = route.kind === 'concept'
+      ? `${wedding.groom.name} · ${wedding.bride.name} — ${route.concept.title}`
+      : route.kind === 'home'
+        ? `${wedding.groom.name} ♡ ${wedding.bride.name} 모바일 청첩장`
+        : '페이지를 찾을 수 없습니다'
   }, [route])
 
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        본문으로 바로가기
-      </a>
+      <a className="skip-link" href="#main-content">본문으로 바로가기</a>
       {route.kind === 'home' && <ConceptHub />}
-      {route.kind === 'concept' && <ConceptPage concept={route.concept} />}
+      {route.kind === 'concept' && <Invitation concept={route.concept} />}
       {route.kind === 'not-found' && <NotFound />}
     </>
   )
@@ -34,295 +48,258 @@ function ConceptHub() {
   return (
     <main id="main-content" className="hub-page">
       <header className="hub-intro">
-        <p className="hub-kicker">Wedding invitation · Concept lab</p>
-        <p className="status-chip">Reference input pending</p>
-        <h1>
-          우리만의 청첩장을 위한
-          <span>세 가지 시작점</span>
-        </h1>
+        <p className="hub-kicker">TAEHWAN & HYOJIN · WEDDING INVITATION</p>
+        <p className="status-chip">세 가지 모바일 시안</p>
+        <h1>우리의 하루를 담은<br /><span>서로 다른 세 개의 장면</span></h1>
         <p className="hub-lede">
-          지금은 최종안이 아닌 디자인 대기실입니다. 보내주실 시안을 함께 살펴본 뒤,
-          마음에 드는 요소만 골라 세 방향을 다시 발전시킵니다.
+          같은 사진과 같은 이야기를 세 가지 분위기로 구성했습니다. 마음에 드는 시안을 골라
+          색감과 문구, 세부 기능을 함께 다듬어 주세요.
         </p>
       </header>
 
       <nav className="concept-grid" aria-label="모바일 청첩장 시안 선택">
-        {concepts.map((concept) => (
-          <a
-            className={`concept-card concept-card--${concept.code.toLowerCase()}`}
-            href={`/${concept.slug}`}
-            key={concept.slug}
-          >
-            <span className="concept-card__number">0{concept.code.charCodeAt(0) - 64}</span>
-            <span className="concept-card__preview" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </span>
-            <span className="concept-card__body">
-              <small>Concept {concept.code}</small>
-              <strong>{concept.title}</strong>
-              <span>{concept.koreanTitle}</span>
-              <em>{concept.summary}</em>
-            </span>
-            <span className="concept-card__arrow" aria-hidden="true">
-              ↗
-            </span>
-          </a>
-        ))}
+        {concepts.map((concept) => {
+          const theme = themeBySlug[concept.slug]
+          return (
+            <a className={`concept-card concept-card--${theme}`} href={`/${concept.slug}`} key={concept.slug}>
+              <img src={heroByTheme[theme]} alt="" />
+              <span className="concept-card__veil" />
+              <span className="concept-card__number">0{concept.code.charCodeAt(0) - 64}</span>
+              <span className="concept-card__body">
+                <small>Concept {concept.code}</small>
+                <strong>{concept.title}</strong>
+                <span>{concept.koreanTitle}</span>
+                <em>{concept.summary}</em>
+              </span>
+              <span className="concept-card__arrow" aria-hidden="true">↗</span>
+            </a>
+          )
+        })}
       </nav>
 
       <section className="hub-guide" aria-labelledby="guide-title">
-        <p>How we will work</p>
-        <h2 id="guide-title">레퍼런스가 도착하면</h2>
-        <ol>
-          <li><span>01</span>좋아하는 장면과 이유를 함께 찾습니다.</li>
-          <li><span>02</span>세 시안에 우리만의 방식으로 다시 조합합니다.</li>
-          <li><span>03</span>한 방향을 골라 실제 사진과 정보로 완성합니다.</li>
-        </ol>
+        <p>Confirmed details</p>
+        <div>
+          <h2 id="guide-title">황태환 그리고 하효진</h2>
+          <p>2027년 2월 20일 토요일 오후 2시 · 안양역 인근</p>
+          <small>예식장명과 상세 주소 등 미정 정보는 모든 시안에 ‘입력 예정’으로 표시했습니다.</small>
+        </div>
       </section>
-
-      <footer className="hub-footer">
-        <p>Preview only · 모든 이름, 날짜, 장소와 이미지는 가상 예시입니다.</p>
-      </footer>
+      <footer className="hub-footer">Original photographs · Three original directions · Mobile first</footer>
     </main>
   )
 }
 
-function ConceptPage({ concept }: { concept: Concept }) {
-  const body: Record<Concept['slug'], ReactNode> = {
-    'concept-a': <BlackCinema />,
-    'concept-b': <PeachArchive />,
-    'concept-c': <MinimalEditorial />,
+function Invitation({ concept }: { concept: Concept }) {
+  const theme = themeBySlug[concept.slug]
+  const copy = themeCopy[theme]
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [galleryExpanded, setGalleryExpanded] = useState(false)
+  const [rsvpOpen, setRsvpOpen] = useState(false)
+  const [tab, setTab] = useState<'transit' | 'parking' | 'gift'>('transit')
+  const [copyStatus, setCopyStatus] = useState('')
+  const [rsvpStatus, setRsvpStatus] = useState('')
+  const returnFocusRef = useRef<HTMLElement | null>(null)
+
+  const openLightbox = (index: number) => {
+    returnFocusRef.current = document.activeElement as HTMLElement
+    setLightboxIndex(index)
+  }
+  const closeOverlay = () => {
+    setLightboxIndex(null)
+    setRsvpOpen(false)
+    window.setTimeout(() => returnFocusRef.current?.focus(), 0)
+  }
+  const openRsvp = () => {
+    returnFocusRef.current = document.activeElement as HTMLElement
+    setRsvpStatus('')
+    setRsvpOpen(true)
+  }
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopyStatus('링크를 복사했습니다.')
+    } catch {
+      setCopyStatus('주소창의 링크를 직접 복사해 주세요.')
+    }
+  }
+  const share = async () => {
+    if (navigator.share) {
+      await navigator.share({ title: `${wedding.groom.name} ♡ ${wedding.bride.name}, 결혼합니다`, url: window.location.href })
+    } else {
+      await copyLink()
+    }
   }
 
   return (
-    <div className={`concept-page concept-page--${concept.code.toLowerCase()}`}>
+    <div className={`concept-page theme-${theme}`}>
       <ConceptNavigation current={concept} />
-      <main id="main-content">{body[concept.slug]}</main>
+      <main id="main-content" className="invitation">
+        <header className="hero">
+          <div className="hero-topline"><span>{copy.eyebrow}</span><span>2027</span></div>
+          <div className="hero-photo-wrap">
+            <img className="hero-photo" src={heroByTheme[theme]} alt="웨딩 촬영 중 서로를 바라보는 황태환과 하효진" />
+            <span className="hero-photo-mark" aria-hidden="true">T · H</span>
+          </div>
+          <div className="hero-copy">
+            <p>{copy.edition}</p>
+            <h1><span>{wedding.groom.name}</span><i>&</i><span>{wedding.bride.name}</span></h1>
+            <p className="hero-date">{wedding.ceremony.shortDate} · SAT · 14:00</p>
+            <p className="hero-place">{wedding.ceremony.location}</p>
+          </div>
+          <a className="scroll-cue" href="#invitation-message">초대의 글 <span aria-hidden="true">↓</span></a>
+        </header>
+
+        <section id="invitation-message" className="section invitation-message">
+          <SectionHead number="01" eyebrow="Invitation" title="소중한 분들을 초대합니다" />
+          <p className="script-line">{copy.chapter}</p>
+          <div className="invitation-lines">{wedding.invitation.map((line) => <p key={line}>{line}</p>)}</div>
+          <p className="couple-sign"><strong>{wedding.groom.name}</strong><span>그리고</span><strong>{wedding.bride.name}</strong></p>
+        </section>
+
+        <section className="section couple-section">
+          <SectionHead number="02" eyebrow="Bride & Groom" title="저희를 소개합니다" />
+          <div className="couple-cards">
+            <article>
+              <span>GROOM</span><strong>{wedding.groom.name}</strong><p>부모님 성함 · 생일 · 소개 문구<br /><em>입력 예정</em></p>
+            </article>
+            <article>
+              <span>BRIDE</span><strong>{wedding.bride.name}</strong><p>부모님 성함 · 생일 · 소개 문구<br /><em>입력 예정</em></p>
+            </article>
+          </div>
+        </section>
+
+        <section className="section day-section">
+          <SectionHead number="03" eyebrow="The day" title="우리의 결혼식" />
+          <div className="date-lockup"><strong>02</strong><i>/</i><strong>20</strong><span>Saturday<br />2:00 PM</span></div>
+          <Calendar />
+          <p className="dday">{getDday()}</p>
+        </section>
+
+        <section className="section gallery-section">
+          <SectionHead number="04" eyebrow="Our moments" title="기억하고 싶은 장면들" />
+          <div className="gallery-grid">
+            {wedding.gallery.slice(0, galleryExpanded ? 12 : 9).map((photo, index) => (
+              <button type="button" onClick={() => openLightbox(index)} key={photo.src} aria-label={`${photo.alt} 크게 보기`}>
+                <img src={photo.src} alt={photo.alt} loading={index > 2 ? 'lazy' : undefined} />
+              </button>
+            ))}
+          </div>
+          {!galleryExpanded && <button className="outline-button" type="button" onClick={() => setGalleryExpanded(true)}>사진 더보기 <span>+3</span></button>}
+        </section>
+
+        <section className="section venue-section">
+          <SectionHead number="05" eyebrow="Location" title="오시는 길" />
+          <div className="venue-card">
+            <span className="venue-pin" aria-hidden="true">●</span>
+            <p>{wedding.ceremony.location}</p>
+            <h3>{wedding.ceremony.venue}</h3>
+            <address>{wedding.ceremony.address}</address>
+          </div>
+          <div className="map-placeholder" aria-label="상세 주소 입력 후 연결할 지도 영역">
+            <span>ANYANG</span><i aria-hidden="true" /><p>정확한 예식장 주소를 입력하면<br />지도가 이곳에 연결됩니다.</p>
+          </div>
+          <div className="map-buttons" aria-label="길찾기 서비스">
+            {['네이버 지도', '카카오맵', '티맵'].map((label) => <button type="button" disabled key={label}>{label}<small>주소 입력 예정</small></button>)}
+          </div>
+          <InfoTabs tab={tab} setTab={setTab} />
+        </section>
+
+        <section className="section rsvp-section">
+          <SectionHead number="06" eyebrow="RSVP" title="참석 여부를 알려주세요" />
+          <p>더 나은 예식 준비를 위한 예시 기능입니다. 지금 입력한 정보는 저장되거나 전송되지 않습니다.</p>
+          <button className="primary-button" type="button" onClick={openRsvp}>참석 여부 전달하기 <span aria-hidden="true">→</span></button>
+        </section>
+
+        <section className="section message-section">
+          <SectionHead number="07" eyebrow="With love" title="마음을 전하실 곳" />
+          <details><summary>신랑 측 연락처 및 계좌 <span>+</span></summary><p>연락처와 계좌 정보 입력 예정입니다. 샘플 화면에는 개인정보를 표시하지 않습니다.</p></details>
+          <details><summary>신부 측 연락처 및 계좌 <span>+</span></summary><p>연락처와 계좌 정보 입력 예정입니다. 샘플 화면에는 개인정보를 표시하지 않습니다.</p></details>
+          <details><summary>축하 화환 및 메시지 <span>+</span></summary><p>신청 방식과 전달 문구를 결정한 뒤 연결할 예정입니다.</p></details>
+        </section>
+
+        <section className="section snap-section">
+          <div className="snap-badge">COMING ON THE WEDDING DAY</div>
+          <h2>Guest Snap</h2>
+          <p>하객 여러분이 담아주신 순간을 한곳에 모으는 기능을 준비하고 있습니다.</p>
+          <button type="button" disabled>사진 올리기 · 준비 중</button>
+        </section>
+
+        <section className="section share-section">
+          <p>Share our day</p><h2>소중한 분께<br />초대장을 전해주세요.</h2>
+          <div><button type="button" onClick={share}>공유하기</button><button type="button" onClick={copyLink}>링크 복사</button></div>
+          <button type="button" className="kakao-pending" disabled>카카오 초대장 공유 · Developers 키 연결 예정</button>
+          <p className="copy-status" role="status">{copyStatus}</p>
+        </section>
+
+        <footer className="invitation-footer"><p>TAEHWAN & HYOJIN</p><span>2027. 02. 20 · ANYANG</span><a href="#main-content">맨 위로 ↑</a></footer>
+      </main>
+
+      {lightboxIndex !== null && <Lightbox index={lightboxIndex} setIndex={setLightboxIndex} close={closeOverlay} />}
+      {rsvpOpen && <RsvpDialog close={closeOverlay} status={rsvpStatus} setStatus={setRsvpStatus} />}
     </div>
   )
 }
 
+function SectionHead({ number, eyebrow, title }: { number: string; eyebrow: string; title: string }) {
+  return <header className="section-head"><span>{number}</span><div><p>{eyebrow}</p><h2>{title}</h2></div></header>
+}
+
+function Calendar() {
+  return (
+    <div className="calendar" aria-label="2027년 2월 달력">
+      <div className="calendar-title"><span>February</span><strong>2027</strong></div>
+      <div className="calendar-grid weekdays">{['일','월','화','수','목','금','토'].map((day) => <span key={day}>{day}</span>)}</div>
+      <div className="calendar-grid days"><span />{february2027.map((day) => <span className={day === 20 ? 'wedding-day' : ''} key={day} aria-label={day === 20 ? '20일 결혼식' : `${day}일`}>{day}</span>)}</div>
+    </div>
+  )
+}
+
+function InfoTabs({ tab, setTab }: { tab: 'transit' | 'parking' | 'gift'; setTab: (tab: 'transit' | 'parking' | 'gift') => void }) {
+  const content = {
+    transit: ['대중교통', '지하철 출구 및 버스 노선 입력 예정'],
+    parking: ['주차 안내', '주차장 위치와 이용 시간 입력 예정'],
+    gift: ['답례품 안내', '수령 위치와 운영 시간 입력 예정'],
+  } as const
+  return <div className="info-tabs"><div role="tablist" aria-label="교통 및 이용 안내">{(['transit','parking','gift'] as const).map((key) => <button role="tab" aria-selected={tab === key} type="button" onClick={() => setTab(key)} key={key}>{content[key][0]}</button>)}</div><div role="tabpanel" tabIndex={0}><strong>{content[tab][0]}</strong><p>{content[tab][1]}</p></div></div>
+}
+
+function Lightbox({ index, setIndex, close }: { index: number; setIndex: (index: number) => void; close: () => void }) {
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const count = wedding.gallery.length
+  useEffect(() => {
+    closeRef.current?.focus()
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') close()
+      if (event.key === 'ArrowLeft') setIndex((index - 1 + count) % count)
+      if (event.key === 'ArrowRight') setIndex((index + 1) % count)
+    }
+    document.body.classList.add('modal-open')
+    window.addEventListener('keydown', onKey)
+    return () => { document.body.classList.remove('modal-open'); window.removeEventListener('keydown', onKey) }
+  }, [close, count, index, setIndex])
+  const photo = wedding.gallery[index]
+  return <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => event.currentTarget === event.target && close()}><div className="lightbox" role="dialog" aria-modal="true" aria-label={`웨딩 사진 ${index + 1} / ${count}`}><button ref={closeRef} className="dialog-close" type="button" onClick={close} aria-label="사진 닫기">×</button><img src={photo.src} alt={photo.alt} /><p>{String(index + 1).padStart(2,'0')} / {count}</p><div><button type="button" onClick={() => setIndex((index - 1 + count) % count)} aria-label="이전 사진">← 이전</button><button type="button" onClick={() => setIndex((index + 1) % count)} aria-label="다음 사진">다음 →</button></div></div></div>
+}
+
+function RsvpDialog({ close, status, setStatus }: { close: () => void; status: string; setStatus: (status: string) => void }) {
+  const closeRef = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    closeRef.current?.focus()
+    const onKey = (event: KeyboardEvent) => event.key === 'Escape' && close()
+    document.body.classList.add('modal-open'); window.addEventListener('keydown', onKey)
+    return () => { document.body.classList.remove('modal-open'); window.removeEventListener('keydown', onKey) }
+  }, [close])
+  const submit = (event: FormEvent) => { event.preventDefault(); setStatus('샘플 확인을 완료했습니다. 입력 내용은 저장하거나 전송하지 않았습니다.') }
+  return <div className="dialog-backdrop" role="presentation"><section className="rsvp-dialog" role="dialog" aria-modal="true" aria-labelledby="rsvp-title"><button ref={closeRef} className="dialog-close" type="button" onClick={close} aria-label="참석 여부 창 닫기">×</button><p>RSVP · SAMPLE</p><h2 id="rsvp-title">참석 여부 전달하기</h2><div className="privacy-note">현재는 화면 확인용 샘플입니다. 어떠한 정보도 저장·전송하지 않습니다.</div><form onSubmit={submit}><fieldset><legend>참석 여부</legend><label><input type="radio" name="attendance" defaultChecked /> 참석합니다</label><label><input type="radio" name="attendance" /> 마음으로 축하합니다</label></fieldset><label>성함<input type="text" placeholder="샘플 입력" /></label><label>구분<select defaultValue=""><option value="" disabled>선택해 주세요</option><option>신랑 측</option><option>신부 측</option></select></label><button className="primary-button" type="submit">샘플 확인하기</button><p role="status">{status}</p></form></section></div>
+}
+
 function ConceptNavigation({ current }: { current: Concept }) {
-  return (
-    <nav className="concept-nav" aria-label="시안 이동">
-      <a className="concept-nav__home" href="/" aria-label="시안 목록으로 돌아가기">
-        <span aria-hidden="true">←</span> 목록
-      </a>
-      <p>
-        Concept {current.code} <span>·</span> 3
-      </p>
-      <div className="concept-nav__switcher" role="group" aria-label="다른 시안">
-        {concepts.map((concept) => (
-          <a
-            aria-current={concept.slug === current.slug ? 'page' : undefined}
-            aria-label={`Concept ${concept.code}: ${concept.koreanTitle}`}
-            href={`/${concept.slug}`}
-            key={concept.slug}
-          >
-            {concept.code}
-          </a>
-        ))}
-      </div>
-    </nav>
-  )
-}
-
-function PendingNote({ dark = false }: { dark?: boolean }) {
-  return (
-    <aside className={`pending-note${dark ? ' pending-note--dark' : ''}`}>
-      <span aria-hidden="true">✦</span>
-      <div>
-        <strong>레퍼런스 반영 대기</strong>
-        <p>{SAMPLE_NOTICE}</p>
-      </div>
-    </aside>
-  )
-}
-
-function BlackCinema() {
-  return (
-    <article className="cinema">
-      <header className="cinema-hero">
-        <p className="cinema-label">A wedding film · Sample edition</p>
-        <div
-          className="cinema-frame"
-          role="img"
-          aria-label="신랑 신부 사진이 들어갈 세로형 프레임"
-        >
-          <div className="cinema-grain" aria-hidden="true" />
-          <span>PHOTO<br />PLACEHOLDER</span>
-        </div>
-        <p className="cinema-date">MAY 22, 2027 · SAT 12:30</p>
-        <h1>SEOYUN<br /><i>and</i> DOHYEON</h1>
-        <p className="cinema-venue">RAON GARDEN CHAPEL · SEOUL</p>
-      </header>
-
-      <section className="cinema-chapter">
-        <p>Chapter 01 · The invitation</p>
-        <h2>오래 기억될<br />한 장면에 초대합니다.</h2>
-        <p className="cinema-copy">
-          서로의 하루를 가장 가까이에서 바라보던 두 사람이 이제 같은 방향으로 걸어가려
-          합니다. 저희의 첫 장면을 함께 빛내 주세요.
-        </p>
-      </section>
-
-      <section className="cinema-strip" aria-label="사진 갤러리 예시">
-        {[1, 2, 3].map((item) => (
-          <div key={item}>
-            <span aria-hidden="true">0{item}</span>
-            <p>PHOTO</p>
-          </div>
-        ))}
-      </section>
-
-      <section className="cinema-info">
-        <div>
-          <p>The day</p>
-          <h2>2027.05.22</h2>
-          <span>토요일 오후 12시 30분</span>
-        </div>
-        <div>
-          <p>The place</p>
-          <h2>Raon Garden</h2>
-          <span>서울시 가상의 예식장 1층</span>
-        </div>
-        <button type="button" disabled aria-describedby="cinema-button-note">
-          지도 영역 준비 중
-        </button>
-        <p id="cinema-button-note" className="visually-hidden">최종 제작 단계에서 지도가 연결됩니다.</p>
-      </section>
-
-      <PendingNote dark />
-      <ConceptFooter label="Black Cinema · Draft 01" />
-    </article>
-  )
-}
-
-function PeachArchive() {
-  return (
-    <article className="archive">
-      <header className="archive-cover">
-        <p className="archive-eyebrow">Our little family archive</p>
-        <div className="archive-title-row">
-          <h1>서윤과 도현의<br /><i>오래된 새 이야기</i></h1>
-          <span>Vol. 01</span>
-        </div>
-        <div
-          className="archive-photo-stack"
-          role="img"
-          aria-label="가족사진과 커플사진이 들어갈 콜라주"
-        >
-          <div className="archive-photo archive-photo--old"><span>FAMILY PHOTO</span></div>
-          <div className="archive-photo archive-photo--new"><span>OUR PHOTO</span></div>
-          <p>같은 마음이 모여<br />한 가족이 되는 날</p>
-        </div>
-        <p className="archive-date">2027년 5월 22일 토요일 · 오후 12시 30분</p>
-      </header>
-
-      <section className="archive-letter">
-        <p className="archive-section-label">A letter from us</p>
-        <h2>소중한 분들께</h2>
-        <p>
-          두 집의 오래된 사진을 한 장씩 꺼내 보았습니다. 서로 다른 시간 속에서 자란 두
-          사람이 만나, 이제 새로운 가족의 첫 페이지를 시작합니다.
-        </p>
-        <p className="archive-signature">서윤 · 도현 드림</p>
-      </section>
-
-      <section className="archive-memories" aria-labelledby="archive-memories-title">
-        <p className="archive-section-label">Then & now</p>
-        <h2 id="archive-memories-title">우리 가족의 시간</h2>
-        <div className="archive-memory-grid">
-          <div><span>1992</span><p>부모님의 결혼사진</p></div>
-          <div><span>2027</span><p>우리의 결혼사진</p></div>
-        </div>
-        <p className="archive-caption">※ 실제 사진을 받은 뒤 우리 가족만의 이야기로 교체합니다.</p>
-      </section>
-
-      <section className="archive-ticket">
-        <p>Wedding day</p>
-        <strong>05 · 22</strong>
-        <div><span>Saturday</span><span>12:30 PM</span></div>
-        <hr />
-        <p>Raon Garden Chapel · Sample venue</p>
-      </section>
-
-      <PendingNote />
-      <ConceptFooter label="Peach Family Archive · Draft 01" />
-    </article>
-  )
-}
-
-function MinimalEditorial() {
-  return (
-    <article className="editorial">
-      <header className="editorial-hero">
-        <p className="editorial-overline">Wedding invitation · 2027</p>
-        <div className="editorial-mark" aria-hidden="true"><span>S</span><i>+</i><span>D</span></div>
-        <h1>서윤 <i>&</i> 도현</h1>
-        <p className="editorial-script">we found home in each other</p>
-        <div
-          className="editorial-photo"
-          role="img"
-          aria-label="밝고 자연스러운 커플 사진이 들어갈 프레임"
-        >
-          <span>YOUR PHOTO<br />WILL BE HERE</span>
-        </div>
-        <p className="editorial-date">2027. 05. 22 · SAT · 12:30</p>
-      </header>
-
-      <section className="editorial-invite">
-        <span aria-hidden="true">01</span>
-        <p className="editorial-section-label">Invitation</p>
-        <h2>함께라는 말이<br />가장 다정해진 날</h2>
-        <p>
-          평범한 날들을 특별하게 만들어 준 서로와 한평생을 약속하려 합니다. 귀한 걸음으로
-          저희의 시작을 축복해 주세요.
-        </p>
-      </section>
-
-      <section className="editorial-details">
-        <span aria-hidden="true">02</span>
-        <p className="editorial-section-label">When & where</p>
-        <dl>
-          <div><dt>Date</dt><dd>2027년 5월 22일 토요일</dd></div>
-          <div><dt>Time</dt><dd>오후 12시 30분</dd></div>
-          <div><dt>Place</dt><dd>라온 가든 채플</dd></div>
-        </dl>
-        <div className="editorial-line" aria-hidden="true"><i /><span>our day</span><i /></div>
-      </section>
-
-      <blockquote>
-        “서두르지 않고, 오래 바라보고,
-        <br />우리다운 하루를 만들겠습니다.”
-      </blockquote>
-
-      <PendingNote />
-      <ConceptFooter label="Minimal Handwritten Editorial · Draft 01" />
-    </article>
-  )
-}
-
-function ConceptFooter({ label }: { label: string }) {
-  return (
-    <footer className="concept-footer">
-      <p>{label}</p>
-      <a href="/">세 시안 다시 보기 <span aria-hidden="true">↑</span></a>
-    </footer>
-  )
+  return <nav className="concept-nav" aria-label="시안 이동"><a href="/" aria-label="시안 목록으로 돌아가기">← <span>목록</span></a><p>{current.code} / 03</p><div>{concepts.map((concept) => <a aria-current={concept.slug === current.slug ? 'page' : undefined} aria-label={`Concept ${concept.code}`} href={`/${concept.slug}`} key={concept.slug}>{concept.code}</a>)}</div></nav>
 }
 
 function NotFound() {
-  return (
-    <main id="main-content" className="not-found">
-      <p>404 · Page not found</p>
-      <h1>이 시안은 아직 준비되지 않았어요.</h1>
-      <p>현재 확인할 수 있는 세 가지 모바일 청첩장 초안으로 돌아가 주세요.</p>
-      <a href="/">시안 목록으로 돌아가기</a>
-    </main>
-  )
+  return <main id="main-content" className="not-found"><p>404</p><h1>페이지를 찾을 수 없습니다.</h1><a href="/">세 가지 시안으로 돌아가기</a></main>
 }
 
 export default App

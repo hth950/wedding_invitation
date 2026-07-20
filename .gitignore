@@ -9,3 +9,4 @@ coverage
 !.env.example
 .gstack/
 secrets/
+public/images/gallery/
