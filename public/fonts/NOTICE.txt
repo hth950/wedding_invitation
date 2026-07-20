@@ -1,0 +1,10 @@
+Maru Buri Light
+
+This project uses a WOFF2 conversion of the official MaruBuri-Light.otf file.
+NAVER provides Maru Buri for free web use under the license described on its
+official Hangeul font page.
+
+Official font page: https://hangeul.naver.com/font
+Official download archive: https://hangeul.pstatic.net/hangeul_static/webfont/zips/maruburi.zip
+
+The font software remains subject to NAVER's official font license terms.

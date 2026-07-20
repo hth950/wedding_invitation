@@ -1,11 +1,20 @@
 :root {
   --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --serif: AppleMyungjo, "Iowan Old Style", Batang, Georgia, serif;
+  --maru-buri: "Maru Buri", AppleMyungjo, Batang, Georgia, serif;
   color: #211d1a;
   background: #d8d5cf;
   font-family: var(--sans);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+}
+
+@font-face {
+  font-family: "Maru Buri";
+  src: url('/fonts/MaruBuri-Light.woff2') format('woff2');
+  font-display: swap;
+  font-style: normal;
+  font-weight: 300;
 }
 
 * { box-sizing: border-box; }
@@ -24,7 +33,19 @@ img { display: block; max-width: 100%; }
 .skip-link:focus { transform: translate(-50%, 0); }
 
 /* Selection hub */
-.hub-page { width: min(100%, 1040px); min-height: 100vh; margin: auto; padding: 72px clamp(20px,6vw,64px) 40px; background: #f2efe8; }
+.hub-page {
+  width: min(100%, 1040px);
+  min-height: 100vh;
+  margin: auto;
+  padding: 72px clamp(20px,6vw,64px) 40px;
+  background-color: #f2e9e7;
+  background-image:
+    linear-gradient(#f5dedec7,#f8eeead1),
+    url('/images/wedding/paper-texture-blush.jpg');
+  background-position: center top;
+  background-repeat: repeat;
+  background-size: auto,457px 640px;
+}
 .hub-kicker, .status-chip { margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
 .status-chip { display: inline-flex; margin: 34px 0 18px; padding: 8px 12px; border: 1px solid #aaa196; border-radius: 999px; color: #736b62; }
 .hub-intro h1 { max-width: 760px; margin: 0; font: 400 clamp(38px,7vw,72px)/1.08 var(--serif); letter-spacing: -.055em; }
@@ -59,7 +80,21 @@ img { display: block; max-width: 100%; }
 .hub-footer { margin-top: 72px; color: #777067; font-size: 10px; letter-spacing: .12em; text-align: center; text-transform: uppercase; }
 
 /* Shared invitation structure */
-.concept-page { --paper:#fbf5ed; --ink:#472d2a; --muted:#806d68; --line:#d4c5bb; --accent:#b95554; --button:#522f2f; --on-button:#fff8ef; width: min(100%, 440px); min-height: 100vh; margin: 0 auto; color: var(--ink); background: var(--paper); box-shadow: 0 0 80px #342d2730; }
+.concept-page {
+  --paper:#fbf5ed;
+  --ink:#472d2a;
+  --muted:#806d68;
+  --line:#d4c5bb;
+  --accent:#b95554;
+  --button:#522f2f;
+  --on-button:#fff8ef;
+  width: min(100%, 440px);
+  min-height: 100vh;
+  margin: 0 auto;
+  color: var(--ink);
+  background-color: var(--paper);
+  box-shadow: 0 0 80px #342d2730;
+}
 .concept-nav { position: sticky; z-index: 40; top: 0; display: flex; min-height: 56px; align-items: center; justify-content: space-between; padding: env(safe-area-inset-top) 12px 0; border-bottom: 1px solid var(--line); color: var(--ink); background: color-mix(in srgb,var(--paper) 90%,transparent); backdrop-filter: blur(14px); }
 .concept-nav a { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; justify-content: center; gap: 5px; font-size: 13px; font-weight: 800; text-decoration: none; }
 .concept-nav p { margin: 0; font-size: 10px; font-weight: 800; letter-spacing: .16em; }
@@ -79,6 +114,7 @@ img { display: block; max-width: 100%; }
 .scroll-cue { display: flex; min-height: 44px; align-items: center; justify-content: space-between; margin-top: 22px; border-top: 1px solid var(--line); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-decoration: none; }
 .section { padding: 82px 24px; border-top: 1px solid var(--line); }
 .section-head { display: grid; grid-template-columns: 34px 1fr; gap: 12px; margin-bottom: 46px; }
+.section-head--simple { display: block; text-align: center; }
 .section-head > span { color: var(--accent); font-size: 11px; font-weight: 900; }
 .section-head p { margin: 0 0 9px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
 .section-head h2 { margin: 0; font: 400 29px/1.35 var(--serif); letter-spacing: -.035em; }
@@ -107,6 +143,7 @@ img { display: block; max-width: 100%; }
 .days .wedding-day { position: relative; z-index: 1; color: white; font-weight: 900; }
 .days .wedding-day::before { position: absolute; z-index: -1; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); content: ''; }
 .dday { margin: 18px 0 0; color: var(--accent); font-size: 15px; font-weight: 900; text-align: center; }
+.dday-label { margin: 30px 0 0; color: var(--ink); font-size: 16px; letter-spacing: .08em; text-align: center; }
 .gallery-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; }
 .gallery-grid button { min-height: 113px; padding: 0; overflow: hidden; border: 0; background: var(--line); }
 .gallery-grid img { width: 100%; height: 100%; aspect-ratio: 1; object-fit: cover; transition: transform .2s; }
@@ -156,17 +193,87 @@ img { display: block; max-width: 100%; }
 .invitation-footer a { justify-self: end; min-height: 44px; padding-top: 12px; font-size: 12px; font-weight: 900; }
 
 /* A — tactile paper letter */
-.theme-letter { background-color: #fbf3ea; background-image: radial-gradient(#9b6c5b18 .6px,transparent .6px); background-size: 6px 6px; }
-.theme-letter .hero-photo-wrap { margin-right: 18px; margin-left: 18px; transform: rotate(-1.2deg); box-shadow: 0 14px 40px #6f4c3c22; }
+.theme-letter {
+  --paper:#faefec;
+  --line:#d8beba;
+  background-color: #faefec;
+  background-image:
+    linear-gradient(#f5cfd066,#fff3ef6b),
+    url('/images/wedding/paper-texture-blush.jpg');
+  background-position: center top;
+  background-repeat: repeat;
+  background-size: auto,457px 640px;
+}
+.theme-letter,
+.theme-letter :where(a,button,input,select,p,span,strong,em,i,h1,h2,h3,address,summary,small) {
+  font-family: var(--maru-buri) !important;
+  font-weight: 300 !important;
+}
+.theme-letter .concept-nav p { font-size: 12px; }
+.theme-letter .hero { min-height: 820px; padding: 38px 22px 60px; text-align: center; }
+.theme-letter .hero-occasion { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0; color: var(--accent); font-size: 14px; letter-spacing: .06em; }
+.theme-letter .hero-photo-wrap { height: 500px; margin: 30px 10px 0; transform: rotate(-.6deg); box-shadow: 0 14px 40px #6f4c3c22; }
 .theme-letter .hero-photo-wrap::after { position: absolute; inset: 11px; border: 1px solid #fff9; content: ''; }
-.theme-letter .hero-copy h1 { justify-content: flex-start; gap: 13px; font-size: 37px; font-style: italic; }
+.theme-letter .hero-photo-mark { display: none; }
+.theme-letter .hero-copy { margin-top: 31px; text-align: center; }
+.theme-letter .hero-copy h1 { justify-content: center; gap: 13px; margin: 14px 0 18px; font-size: 38px; font-style: normal; }
 .theme-letter .hero-copy h1 span { white-space: nowrap; }
-.theme-letter .invitation-message { background: #f6dfda; }
+.theme-letter .hero-copy h1 i { font-size: 20px; }
+.theme-letter .hero-date { font-size: 16px; }
+.theme-letter .hero-place { font-size: 15px; }
+.theme-letter .scroll-cue { justify-content: center; gap: 12px; margin-top: 30px; border-top: 0; }
+.theme-letter .section { padding: 104px 26px; border-top: 0; text-align: center; }
+.theme-letter .section-head { margin-bottom: 43px; }
+.theme-letter .section-head h2 { font-size: 28px; letter-spacing: .01em; }
+.theme-letter .couple-section { padding-top: 116px; }
+.theme-letter .couple-cards article { padding: 33px 22px; text-align: center; }
+.theme-letter .couple-cards span { font-size: 12px; letter-spacing: .12em; }
+.theme-letter .couple-cards p,
+.theme-letter .rsvp-section > p,
+.theme-letter .message-section details p,
+.theme-letter .info-tabs [role="tabpanel"] { text-align: center; }
+.theme-letter .date-lockup { justify-content: center; }
+.theme-letter .dday { margin-top: 8px; font-size: 16px; }
+.theme-letter .venue-card { padding: 27px 22px; text-align: center; }
+.theme-letter .venue-pin { display: none; }
+.theme-letter .venue-card p { font-size: 13px; }
+.theme-letter .map-buttons small { font-size: 10px; }
+.theme-letter .message-section summary { position: relative; justify-content: center; padding: 0 44px; text-align: center; }
+.theme-letter .message-section summary span { position: absolute; right: 15px; }
+.theme-letter .snap-section h2 { font-size: 29px; letter-spacing: .09em; }
+.theme-letter .share-section h2 { margin-top: 0; }
+.theme-letter .invitation-footer { border-top: 0; font-size: 11px; text-align: center; }
+.theme-letter .invitation-footer a { justify-self: center; }
+.theme-letter .invitation-message {
+  background-color: #f4d8d8;
+  background-image:
+    linear-gradient(#efc6ca70,#f8dedb70),
+    url('/images/wedding/paper-texture-blush.jpg');
+  background-position: center top;
+  background-repeat: repeat;
+  background-size: auto,457px 640px;
+}
 .theme-letter .gallery-grid button:nth-child(4n+1) { transform: rotate(-1deg); }
 .theme-letter .gallery-grid button:nth-child(4n) { transform: rotate(1deg); }
 
 /* B — cinematic chapters */
-.theme-cinema { --paper:#11100f; --ink:#f4eee6; --muted:#aaa19a; --line:#3d3733; --accent:#bd3e35; --button:#bd3e35; --on-button:#fff; font-family: var(--sans); background: #11100f; }
+.theme-cinema {
+  --paper:#161214;
+  --ink:#f4eee6;
+  --muted:#aaa19a;
+  --line:#44383c;
+  --accent:#bd3e35;
+  --button:#bd3e35;
+  --on-button:#fff;
+  font-family: var(--sans);
+  background-color: #161214;
+  background-image:
+    linear-gradient(#11100feb,#2a1118e6),
+    url('/images/wedding/paper-texture-blush.jpg');
+  background-position: center top;
+  background-repeat: repeat;
+  background-size: auto,457px 640px;
+}
 .theme-cinema .hero { min-height: 810px; padding-top: 18px; }
 .theme-cinema .hero-photo-wrap { height: 515px; margin-right: -20px; margin-left: 38px; border: 1px solid #514741; }
 .theme-cinema .hero-photo { filter: saturate(.55) contrast(1.08) brightness(.78); }
@@ -176,7 +283,15 @@ img { display: block; max-width: 100%; }
 .theme-cinema .hero-copy h1 span { display: block; }
 .theme-cinema .hero-copy h1 i { display: block; margin: 6px 0 5px 118px; font: italic 22px var(--serif); }
 .theme-cinema .section-head h2 { font-family: var(--sans); font-size: 31px; font-weight: 850; letter-spacing: -.05em; }
-.theme-cinema .invitation-message { background: #181513; }
+.theme-cinema .invitation-message {
+  background-color: #21171a;
+  background-image:
+    linear-gradient(#181315e8,#32171ee6),
+    url('/images/wedding/paper-texture-blush.jpg');
+  background-position: center top;
+  background-repeat: repeat;
+  background-size: auto,457px 640px;
+}
 .theme-cinema .script-line { text-align: left; }
 .theme-cinema .invitation-lines p { color: #d2cbc5; text-align: left; }
 .theme-cinema .couple-sign { justify-content: flex-start; }
@@ -185,7 +300,22 @@ img { display: block; max-width: 100%; }
 .theme-cinema .map-placeholder p { background: #11100f; }
 
 /* C — Swiss station poster */
-.theme-poster { --paper:#f3f0e7; --ink:#101010; --muted:#474747; --line:#1c1c1c; --accent:#ed271b; --button:#064ec5; --on-button:#fff; background: #f3f0e7; }
+.theme-poster {
+  --paper:#f7efeb;
+  --ink:#101010;
+  --muted:#474747;
+  --line:#1c1c1c;
+  --accent:#ed271b;
+  --button:#064ec5;
+  --on-button:#fff;
+  background-color: #f7efeb;
+  background-image:
+    linear-gradient(#fff5f0d4,#f5e3e0d6),
+    url('/images/wedding/paper-texture-blush.jpg');
+  background-position: center top;
+  background-repeat: repeat;
+  background-size: auto,457px 640px;
+}
 .theme-poster .concept-nav { color: white; background: #064ec5ee; }
 .theme-poster .concept-nav > div a[aria-current="page"] { color: #fff; }
 .theme-poster .hero { min-height: 770px; padding: 0; border-bottom: 14px solid #064ec5; }
@@ -204,7 +334,16 @@ img { display: block; max-width: 100%; }
 .theme-poster .section-head > span { display: grid; height: 40px; place-items: center; color: white; background: #ed271b; font-size: 18px; }
 .theme-poster .section-head p { color: #064ec5; }
 .theme-poster .section-head h2 { font-family: var(--sans); font-size: 29px; font-weight: 950; }
-.theme-poster .invitation-message { color: white; background: #064ec5; }
+.theme-poster .invitation-message {
+  color: white;
+  background-color: #064ec5;
+  background-image:
+    linear-gradient(#064ec5ed,#0646b9e9),
+    url('/images/wedding/paper-texture-blush.jpg');
+  background-position: center top;
+  background-repeat: repeat;
+  background-size: auto,457px 640px;
+}
 .theme-poster .invitation-message .section-head > span { color: #064ec5; background: white; }
 .theme-poster .invitation-message .section-head p, .theme-poster .invitation-message .script-line { color: #ffdb32; }
 .theme-poster .couple-cards { grid-template-columns: 1fr 1fr; gap: 0; }
@@ -215,8 +354,18 @@ img { display: block; max-width: 100%; }
 .theme-poster .calendar { border: 5px solid #064ec5; }
 .theme-poster .gallery-grid { gap: 0; border: 5px solid #101010; }
 .theme-poster .outline-button { color: white; background: #ed271b; }
-.theme-poster .map-placeholder { background-color: #fff; background-image: linear-gradient(90deg,#064ec51c 1px,transparent 1px),linear-gradient(#064ec51c 1px,transparent 1px); background-size: 24px 24px; }
-.theme-poster .map-placeholder p { background: #f3f0e7; }
+.theme-poster .map-placeholder {
+  background-color: #fff5f2;
+  background-image:
+    linear-gradient(90deg,#064ec51c 1px,transparent 1px),
+    linear-gradient(#064ec51c 1px,transparent 1px),
+    linear-gradient(#fff5f0d4,#f5e3e0d6),
+    url('/images/wedding/paper-texture-blush.jpg');
+  background-position: left top,left top,center top,center top;
+  background-repeat: repeat;
+  background-size: 24px 24px,24px 24px,auto,457px 640px;
+}
+.theme-poster .map-placeholder p { background: #f7efeb; }
 
 /* Dialogs */
 .dialog-backdrop { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 16px; background: #090807ec; }

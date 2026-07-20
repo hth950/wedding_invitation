@@ -92,6 +92,7 @@ function ConceptHub() {
 
 function Invitation({ concept }: { concept: Concept }) {
   const theme = themeBySlug[concept.slug]
+  const isLetter = theme === 'letter'
   const copy = themeCopy[theme]
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [galleryExpanded, setGalleryExpanded] = useState(false)
@@ -136,48 +137,51 @@ function Invitation({ concept }: { concept: Concept }) {
       <ConceptNavigation current={concept} />
       <main id="main-content" className="invitation">
         <header className="hero">
-          <div className="hero-topline"><span>{copy.eyebrow}</span><span>2027</span></div>
+          {isLetter
+            ? <p className="hero-occasion">{wedding.ceremony.shortDate}<span aria-hidden="true">·</span>결혼합니다</p>
+            : <div className="hero-topline"><span>{copy.eyebrow}</span><span>2027</span></div>}
           <div className="hero-photo-wrap">
             <img className="hero-photo" src={heroByTheme[theme]} alt="웨딩 촬영 중 서로를 바라보는 황태환과 하효진" />
             <span className="hero-photo-mark" aria-hidden="true">T · H</span>
           </div>
           <div className="hero-copy">
-            <p>{copy.edition}</p>
+            {!isLetter && <p>{copy.edition}</p>}
             <h1><span>{wedding.groom.name}</span><i>&</i><span>{wedding.bride.name}</span></h1>
-            <p className="hero-date">{wedding.ceremony.shortDate} · SAT · 14:00</p>
+            <p className="hero-date">{isLetter ? `${wedding.ceremony.shortDate} · 토요일 · 오후 2시` : `${wedding.ceremony.shortDate} · SAT · 14:00`}</p>
             <p className="hero-place">{wedding.ceremony.location}</p>
           </div>
           <a className="scroll-cue" href="#invitation-message">초대의 글 <span aria-hidden="true">↓</span></a>
         </header>
 
         <section id="invitation-message" className="section invitation-message">
-          <SectionHead number="01" eyebrow="Invitation" title="소중한 분들을 초대합니다" />
+          <SectionHead number="01" eyebrow="Invitation" title="소중한 분들을 초대합니다" simple={isLetter} />
           <p className="script-line">{copy.chapter}</p>
           <div className="invitation-lines">{wedding.invitation.map((line) => <p key={line}>{line}</p>)}</div>
           <p className="couple-sign"><strong>{wedding.groom.name}</strong><span>그리고</span><strong>{wedding.bride.name}</strong></p>
         </section>
 
         <section className="section couple-section">
-          <SectionHead number="02" eyebrow="Bride & Groom" title="저희를 소개합니다" />
+          {!isLetter && <SectionHead number="02" eyebrow="Bride & Groom" title="저희를 소개합니다" />}
           <div className="couple-cards">
             <article>
-              <span>GROOM</span><strong>{wedding.groom.name}</strong><p>부모님 성함 · 생일 · 소개 문구<br /><em>입력 예정</em></p>
+              <span>{isLetter ? wedding.groom.role : 'GROOM'}</span><strong>{wedding.groom.name}</strong><p>부모님 성함 · 생일 · 소개 문구<br /><em>입력 예정</em></p>
             </article>
             <article>
-              <span>BRIDE</span><strong>{wedding.bride.name}</strong><p>부모님 성함 · 생일 · 소개 문구<br /><em>입력 예정</em></p>
+              <span>{isLetter ? wedding.bride.role : 'BRIDE'}</span><strong>{wedding.bride.name}</strong><p>부모님 성함 · 생일 · 소개 문구<br /><em>입력 예정</em></p>
             </article>
           </div>
         </section>
 
         <section className="section day-section">
-          <SectionHead number="03" eyebrow="The day" title="우리의 결혼식" />
-          <div className="date-lockup"><strong>02</strong><i>/</i><strong>20</strong><span>Saturday<br />2:00 PM</span></div>
+          <SectionHead number="03" eyebrow="The day" title={isLetter ? '예식 안내' : '우리의 결혼식'} simple={isLetter} />
+          <div className="date-lockup"><strong>02</strong><i>/</i><strong>20</strong><span>{isLetter ? <>토요일<br />오후 2시</> : <>Saturday<br />2:00 PM</>}</span></div>
           <Calendar />
+          {isLetter && <p className="dday-label">함께한 시간</p>}
           <p className="dday">{getDday()}</p>
         </section>
 
         <section className="section gallery-section">
-          <SectionHead number="04" eyebrow="Our moments" title="기억하고 싶은 장면들" />
+          <SectionHead number="04" eyebrow="Our moments" title={isLetter ? '갤러리' : '기억하고 싶은 장면들'} simple={isLetter} />
           <div className="gallery-grid">
             {wedding.gallery.slice(0, galleryExpanded ? 12 : 9).map((photo, index) => (
               <button type="button" onClick={() => openLightbox(index)} key={photo.src} aria-label={`${photo.alt} 크게 보기`}>
@@ -189,7 +193,7 @@ function Invitation({ concept }: { concept: Concept }) {
         </section>
 
         <section className="section venue-section">
-          <SectionHead number="05" eyebrow="Location" title="오시는 길" />
+          <SectionHead number="05" eyebrow="Location" title="오시는 길" simple={isLetter} />
           <div className="venue-card">
             <span className="venue-pin" aria-hidden="true">●</span>
             <p>{wedding.ceremony.location}</p>
@@ -206,27 +210,27 @@ function Invitation({ concept }: { concept: Concept }) {
         </section>
 
         <section className="section rsvp-section">
-          <SectionHead number="06" eyebrow="RSVP" title="참석 여부를 알려주세요" />
+          <SectionHead number="06" eyebrow="RSVP" title={isLetter ? '참석 여부 전달' : '참석 여부를 알려주세요'} simple={isLetter} />
           <p>더 나은 예식 준비를 위한 예시 기능입니다. 지금 입력한 정보는 저장되거나 전송되지 않습니다.</p>
           <button className="primary-button" type="button" onClick={openRsvp}>참석 여부 전달하기 <span aria-hidden="true">→</span></button>
         </section>
 
         <section className="section message-section">
-          <SectionHead number="07" eyebrow="With love" title="마음을 전하실 곳" />
+          <SectionHead number="07" eyebrow="With love" title="마음을 전하실 곳" simple={isLetter} />
           <details><summary>신랑 측 연락처 및 계좌 <span>+</span></summary><p>연락처와 계좌 정보 입력 예정입니다. 샘플 화면에는 개인정보를 표시하지 않습니다.</p></details>
           <details><summary>신부 측 연락처 및 계좌 <span>+</span></summary><p>연락처와 계좌 정보 입력 예정입니다. 샘플 화면에는 개인정보를 표시하지 않습니다.</p></details>
-          <details><summary>축하 화환 및 메시지 <span>+</span></summary><p>신청 방식과 전달 문구를 결정한 뒤 연결할 예정입니다.</p></details>
+          <details><summary>{isLetter ? '축하화환 보내기' : '축하 화환 및 메시지'} <span>+</span></summary><p>신청 방식과 전달 문구를 결정한 뒤 연결할 예정입니다.</p></details>
         </section>
 
         <section className="section snap-section">
-          <div className="snap-badge">COMING ON THE WEDDING DAY</div>
-          <h2>Guest Snap</h2>
+          {!isLetter && <div className="snap-badge">COMING ON THE WEDDING DAY</div>}
+          <h2>{isLetter ? 'GUEST SNAP' : 'Guest Snap'}</h2>
           <p>하객 여러분이 담아주신 순간을 한곳에 모으는 기능을 준비하고 있습니다.</p>
           <button type="button" disabled>사진 올리기 · 준비 중</button>
         </section>
 
         <section className="section share-section">
-          <p>Share our day</p><h2>소중한 분께<br />초대장을 전해주세요.</h2>
+          {!isLetter && <p>Share our day</p>}<h2>소중한 분께<br />초대장을 전해주세요.</h2>
           <div><button type="button" onClick={share}>공유하기</button><button type="button" onClick={copyLink}>링크 복사</button></div>
           <button type="button" className="kakao-pending" disabled>카카오 초대장 공유 · Developers 키 연결 예정</button>
           <p className="copy-status" role="status">{copyStatus}</p>
@@ -241,7 +245,8 @@ function Invitation({ concept }: { concept: Concept }) {
   )
 }
 
-function SectionHead({ number, eyebrow, title }: { number: string; eyebrow: string; title: string }) {
+function SectionHead({ number, eyebrow, title, simple = false }: { number: string; eyebrow: string; title: string; simple?: boolean }) {
+  if (simple) return <header className="section-head section-head--simple"><h2>{title}</h2></header>
   return <header className="section-head"><span>{number}</span><div><p>{eyebrow}</p><h2>{title}</h2></div></header>
 }
 
