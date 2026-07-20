@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type SyntheticEvent } from 'react'
 import { concepts, type Concept } from './data/concepts'
 import { february2027, getDday, getTogetherDays, wedding } from './data/wedding'
+import { createAsyncStartGuard } from './lib/async-start-guard'
+import { readLargeTextPreference, writeLargeTextPreference } from './lib/preferences'
 import { resolveRoute } from './lib/routes'
 
 type Theme = 'letter' | 'cinema' | 'poster'
@@ -48,6 +50,137 @@ function trapDialogFocus(event: KeyboardEvent, container: HTMLElement | null) {
     event.preventDefault()
     first.focus()
   }
+}
+
+function preventImageDownload(event: SyntheticEvent) {
+  event.preventDefault()
+}
+
+const proceduralNotes = [261.63, 329.63, 392, 329.63, 293.66, 349.23, 440, 349.23]
+const proceduralStepSeconds = 0.8
+
+function scheduleProceduralMusic(context: AudioContext, output: GainNode) {
+  const start = context.currentTime + 0.06
+  proceduralNotes.forEach((frequency, index) => {
+    const noteStart = start + index * proceduralStepSeconds
+    const oscillator = context.createOscillator()
+    const envelope = context.createGain()
+    oscillator.type = 'sine'
+    oscillator.frequency.value = frequency
+    envelope.gain.setValueAtTime(0.0001, noteStart)
+    envelope.gain.exponentialRampToValueAtTime(0.7, noteStart + 0.08)
+    envelope.gain.exponentialRampToValueAtTime(0.0001, noteStart + 0.72)
+    oscillator.connect(envelope).connect(output)
+    oscillator.start(noteStart)
+    oscillator.stop(noteStart + 0.74)
+  })
+}
+
+function useWeddingMusic() {
+  const [playing, setPlaying] = useState(false)
+  const [starting, setStarting] = useState(false)
+  const [status, setStatus] = useState('')
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const contextRef = useRef<AudioContext | null>(null)
+  const timerRef = useRef<number | null>(null)
+  const disposedRef = useRef(false)
+  const startGuardRef = useRef(createAsyncStartGuard())
+
+  const stop = () => {
+    if (timerRef.current !== null) window.clearInterval(timerRef.current)
+    timerRef.current = null
+    audioRef.current?.pause()
+    audioRef.current = null
+    void contextRef.current?.close()
+    contextRef.current = null
+    setPlaying(false)
+    setStatus('배경음악을 일시정지했습니다.')
+  }
+
+  const startProcedural = async () => {
+    const context = new AudioContext()
+    contextRef.current = context
+    try {
+      const output = context.createGain()
+      output.gain.value = 0.035
+      output.connect(context.destination)
+      await context.resume()
+      if (disposedRef.current) {
+        void context.close()
+        if (contextRef.current === context) contextRef.current = null
+        return
+      }
+      scheduleProceduralMusic(context, output)
+      const cycleMs = proceduralNotes.length * proceduralStepSeconds * 1000
+      timerRef.current = window.setInterval(() => scheduleProceduralMusic(context, output), cycleMs)
+      setPlaying(true)
+      setStatus('잔잔한 배경음악을 재생합니다.')
+    } catch (error) {
+      void context.close()
+      if (contextRef.current === context) contextRef.current = null
+      throw error
+    }
+  }
+
+  const toggle = async () => {
+    if (playing) {
+      stop()
+      return
+    }
+
+    try {
+      await startGuardRef.current.run(async () => {
+        if (disposedRef.current) return
+        setStarting(true)
+        setStatus('배경음악을 준비합니다.')
+        try {
+          const localSource = import.meta.env.VITE_WEDDING_MUSIC_SRC?.trim()
+          if (localSource) {
+            const audio = new Audio(localSource)
+            audio.loop = true
+            audio.preload = 'auto'
+            audioRef.current = audio
+            try {
+              await audio.play()
+              if (disposedRef.current) {
+                audio.pause()
+                if (audioRef.current === audio) audioRef.current = null
+                return
+              }
+              setPlaying(true)
+              setStatus('배경음악을 재생합니다.')
+              return
+            } catch {
+              audio.pause()
+              if (audioRef.current === audio) audioRef.current = null
+              if (disposedRef.current) return
+            }
+          }
+
+          await startProcedural()
+        } finally {
+          if (!disposedRef.current) setStarting(false)
+        }
+      })
+    } catch {
+      if (!disposedRef.current) {
+        setPlaying(false)
+        setStatus('이 브라우저에서는 음악을 재생할 수 없습니다.')
+      }
+    }
+  }
+
+  useEffect(() => () => {
+    disposedRef.current = true
+    if (timerRef.current !== null) window.clearInterval(timerRef.current)
+    timerRef.current = null
+    audioRef.current?.pause()
+    audioRef.current = null
+    void contextRef.current?.close()
+    contextRef.current = null
+  }, [])
+
+  return { playing, starting, status, toggle }
 }
 
 function App() {
@@ -132,7 +265,17 @@ function Invitation({ concept }: { concept: Concept }) {
   const [tab, setTab] = useState<'transit' | 'parking' | 'gift'>('transit')
   const [copyStatus, setCopyStatus] = useState('')
   const [rsvpStatus, setRsvpStatus] = useState('')
+  const [largeText, setLargeText] = useState(readLargeTextPreference)
+  const music = useWeddingMusic()
   const returnFocusRef = useRef<HTMLElement | null>(null)
+
+  const toggleLargeText = () => {
+    setLargeText((current) => {
+      const next = !current
+      writeLargeTextPreference(next)
+      return next
+    })
+  }
 
   const openLightbox = (index: number) => {
     returnFocusRef.current = document.activeElement as HTMLElement
@@ -192,8 +335,16 @@ function Invitation({ concept }: { concept: Concept }) {
   }
 
   return (
-    <div className={`concept-page theme-${theme}`}>
-      <ConceptNavigation current={concept} />
+    <div className={`concept-page theme-${theme}${largeText ? ' large-text' : ''}`}>
+      <ConceptNavigation
+        current={concept}
+        musicPlaying={music.playing}
+        musicStarting={music.starting}
+        musicStatus={music.status}
+        toggleMusic={music.toggle}
+        largeText={largeText}
+        toggleLargeText={toggleLargeText}
+      />
       <main id="main-content" className="invitation">
         <header className="hero">
           {isLetter
@@ -240,10 +391,10 @@ function Invitation({ concept }: { concept: Concept }) {
 
         <section className="section gallery-section">
           <SectionHead number="04" eyebrow="Our moments" title={isLetter ? '갤러리' : '기억하고 싶은 장면들'} simple={isLetter} />
-          <div className="gallery-grid">
+          <div className="gallery-grid" onContextMenu={preventImageDownload} onDragStart={preventImageDownload}>
             {wedding.gallery.slice(0, galleryExpanded ? 12 : 9).map((photo, index) => (
               <button type="button" onClick={() => openLightbox(index)} key={photo.src} aria-label={`${photo.alt} 크게 보기`}>
-                <img src={photo.src} alt={photo.alt} loading={index > 2 ? 'lazy' : undefined} />
+                <img src={photo.src} alt={photo.alt} loading={index > 2 ? 'lazy' : undefined} draggable={false} />
               </button>
             ))}
           </div>
@@ -350,7 +501,7 @@ function Lightbox({ index, setIndex, close }: { index: number; setIndex: (index:
     return () => { document.body.classList.remove('modal-open'); window.removeEventListener('keydown', onKey) }
   }, [close, count, index, setIndex])
   const photo = wedding.gallery[index]
-  return <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => event.currentTarget === event.target && close()}><div ref={dialogRef} className="lightbox" role="dialog" aria-modal="true" aria-label={`웨딩 사진 ${index + 1} / ${count}`}><button ref={closeRef} className="dialog-close" type="button" onClick={close} aria-label="사진 닫기">×</button><img src={photo.src} alt={photo.alt} /><p>{String(index + 1).padStart(2,'0')} / {count}</p><div><button type="button" onClick={() => setIndex((index - 1 + count) % count)} aria-label="이전 사진">← 이전</button><button type="button" onClick={() => setIndex((index + 1) % count)} aria-label="다음 사진">다음 →</button></div></div></div>
+  return <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => event.currentTarget === event.target && close()}><div ref={dialogRef} className="lightbox" role="dialog" aria-modal="true" aria-label={`웨딩 사진 ${index + 1} / ${count}`}><button ref={closeRef} className="dialog-close" type="button" onClick={close} aria-label="사진 닫기">×</button><img src={photo.src} alt={photo.alt} draggable={false} onContextMenu={preventImageDownload} onDragStart={preventImageDownload} /><p>{String(index + 1).padStart(2,'0')} / {count}</p><div><button type="button" onClick={() => setIndex((index - 1 + count) % count)} aria-label="이전 사진">← 이전</button><button type="button" onClick={() => setIndex((index + 1) % count)} aria-label="다음 사진">다음 →</button></div></div></div>
 }
 
 function RsvpDialog({ close, status, setStatus }: { close: () => void; status: string; setStatus: (status: string) => void }) {
@@ -369,8 +520,24 @@ function RsvpDialog({ close, status, setStatus }: { close: () => void; status: s
   return <div className="dialog-backdrop" role="presentation"><section ref={dialogRef} className="rsvp-dialog" role="dialog" aria-modal="true" aria-labelledby="rsvp-title"><button ref={closeRef} className="dialog-close" type="button" onClick={close} aria-label="참석 여부 창 닫기">×</button><p>RSVP · SAMPLE</p><h2 id="rsvp-title">참석 여부 전달하기</h2><div className="privacy-note">현재는 화면 확인용 샘플입니다. 어떠한 정보도 저장·전송하지 않습니다.</div><form onSubmit={submit}><fieldset><legend>참석 여부</legend><label><input type="radio" name="attendance" value="attending" defaultChecked /> 참석합니다</label><label><input type="radio" name="attendance" value="celebrating" /> 마음으로 축하합니다</label></fieldset><label>성함<input type="text" placeholder="샘플 입력" required maxLength={30} autoComplete="name" /></label><label>구분<select defaultValue="" required><option value="" disabled>선택해 주세요</option><option>신랑 측</option><option>신부 측</option></select></label><button className="primary-button" type="submit">샘플 확인하기</button><p role="status">{status}</p></form></section></div>
 }
 
-function ConceptNavigation({ current }: { current: Concept }) {
-  return <nav className="concept-nav" aria-label="시안 이동"><a href="/" aria-label="시안 목록으로 돌아가기">← <span>목록</span></a><p>{current.code}</p><div>{concepts.map((concept) => <a aria-current={concept.slug === current.slug ? 'page' : undefined} aria-label={`Concept ${concept.code}`} href={`/${concept.slug}`} key={concept.slug}>{concept.code}</a>)}</div></nav>
+function ConceptNavigation({
+  current,
+  musicPlaying,
+  musicStarting,
+  musicStatus,
+  toggleMusic,
+  largeText,
+  toggleLargeText,
+}: {
+  current: Concept
+  musicPlaying: boolean
+  musicStarting: boolean
+  musicStatus: string
+  toggleMusic: () => Promise<void>
+  largeText: boolean
+  toggleLargeText: () => void
+}) {
+  return <nav className="concept-nav" aria-label="시안 및 보기 설정"><a href="/" aria-label="시안 목록으로 돌아가기">← <span>목록</span></a><div className="concept-nav__routes">{concepts.map((concept) => <a aria-current={concept.slug === current.slug ? 'page' : undefined} aria-label={`Concept ${concept.code}`} href={`/${concept.slug}`} key={concept.slug}>{concept.code}</a>)}</div><div className="concept-nav__tools"><button type="button" disabled={musicStarting} aria-pressed={musicPlaying} aria-label={musicStarting ? '배경음악 준비 중' : musicPlaying ? '배경음악 일시정지' : '배경음악 재생'} title={musicStarting ? '음악 준비 중' : musicPlaying ? '음악 일시정지' : '음악 재생'} onClick={() => void toggleMusic()}><span aria-hidden="true">{musicStarting ? '…' : musicPlaying ? 'Ⅱ' : '♪'}</span><small>음악</small></button><button type="button" aria-pressed={largeText} aria-label={largeText ? '기본 글씨로 보기' : '큰 글씨로 보기'} title={largeText ? '기본 글씨' : '큰 글씨'} onClick={toggleLargeText}><span aria-hidden="true">가+</span><small>큰글</small></button><span className="sr-only" role="status" aria-live="polite">{musicStatus}</span></div></nav>
 }
 
 function NotFound() {
