@@ -300,7 +300,7 @@ function RsvpDialog({ close, status, setStatus }: { close: () => void; status: s
 }
 
 function ConceptNavigation({ current }: { current: Concept }) {
-  return <nav className="concept-nav" aria-label="시안 이동"><a href="/" aria-label="시안 목록으로 돌아가기">← <span>목록</span></a><p>{current.code} / 03</p><div>{concepts.map((concept) => <a aria-current={concept.slug === current.slug ? 'page' : undefined} aria-label={`Concept ${concept.code}`} href={`/${concept.slug}`} key={concept.slug}>{concept.code}</a>)}</div></nav>
+  return <nav className="concept-nav" aria-label="시안 이동"><a href="/" aria-label="시안 목록으로 돌아가기">← <span>목록</span></a><p>{current.code}</p><div>{concepts.map((concept) => <a aria-current={concept.slug === current.slug ? 'page' : undefined} aria-label={`Concept ${concept.code}`} href={`/${concept.slug}`} key={concept.slug}>{concept.code}</a>)}</div></nav>
 }
 
 function NotFound() {
