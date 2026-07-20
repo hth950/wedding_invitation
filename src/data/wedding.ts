@@ -2,6 +2,19 @@ export const WEDDING_DATE_ISO = '2027-02-20T14:00:00+09:00'
 export const MET_DATE_ISO = '2019-07-09'
 export const MET_DATE_LABEL = '2019년 7월 9일'
 
+const DAY_IN_MS = 86_400_000
+const KST_OFFSET_IN_MS = 9 * 60 * 60 * 1_000
+
+function isoDateSerial(value: string): number {
+  const [year, month, day] = value.slice(0, 10).split('-').map(Number)
+  return Date.UTC(year, month - 1, day) / DAY_IN_MS
+}
+
+function kstDateSerial(now: Date): number {
+  const kst = new Date(now.getTime() + KST_OFFSET_IN_MS)
+  return Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate()) / DAY_IN_MS
+}
+
 export const wedding = {
   groom: {
     name: '황태환',
@@ -46,20 +59,14 @@ export const wedding = {
 } as const
 
 export function getDday(now = new Date()): string {
-  const target = new Date(WEDDING_DATE_ISO)
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const weddingDay = new Date(target.getFullYear(), target.getMonth(), target.getDate())
-  const days = Math.round((weddingDay.getTime() - today.getTime()) / 86_400_000)
+  const days = isoDateSerial(WEDDING_DATE_ISO) - kstDateSerial(now)
   if (days === 0) return '오늘, 저희 결혼합니다'
   if (days > 0) return `결혼식까지 D-${days}`
-  return `함께한 지 D+${Math.abs(days)}`
+  return `결혼한 지 D+${Math.abs(days)}`
 }
 
 export function getTogetherDays(now = new Date()): string {
-  const [metYear, metMonth, metDate] = MET_DATE_ISO.split('-').map(Number)
-  const metDay = Date.UTC(metYear, metMonth - 1, metDate)
-  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-  const inclusiveDays = Math.floor((today - metDay) / 86_400_000) + 1
+  const inclusiveDays = kstDateSerial(now) - isoDateSerial(MET_DATE_ISO) + 1
   return `함께한 지 D+${inclusiveDays}`
 }
 
