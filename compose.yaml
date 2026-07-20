@@ -1,0 +1,30 @@
+name: wedding-invitation
+
+services:
+  web:
+    image: wedding-invitation:${APP_COMMIT_SHA:-local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_COMMIT_SHA: ${APP_COMMIT_SHA:-unknown}
+    container_name: wedding-invitation-web-1
+    labels:
+      org.opencontainers.image.revision: ${APP_COMMIT_SHA:-unknown}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:32778:80"
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz | grep -q '^ok$'"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+networks:
+  internal:
+    name: wedding-invitation-internal
+    driver: bridge
+    internal: true
