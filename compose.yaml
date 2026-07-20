@@ -23,6 +23,35 @@ services:
       retries: 3
       start_period: 5s
 
+  tunnel:
+    image: cloudflare/cloudflared:2026.7.2@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d
+    container_name: wedding-invitation-tunnel-1
+    user: "1000:1000"
+    command:
+      - tunnel
+      - --no-autoupdate
+      - run
+      - --token-file
+      - /run/secrets/cloudflare-tunnel-token
+    volumes:
+      - type: bind
+        source: ./secrets/cloudflare-tunnel-token
+        target: /run/secrets/cloudflare-tunnel-token
+        read_only: true
+        bind:
+          create_host_path: false
+    networks:
+      - internal
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+
 networks:
   internal:
     name: wedding-invitation-internal
