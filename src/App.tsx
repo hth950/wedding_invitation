@@ -122,16 +122,43 @@ function Invitation({ concept }: { concept: Concept }) {
     setRsvpOpen(true)
   }
   const copyLink = async () => {
+    let copied = false
     try {
-      await navigator.clipboard.writeText(window.location.href)
-      setCopyStatus('링크를 복사했습니다.')
-    } catch {
-      setCopyStatus('주소창의 링크를 직접 복사해 주세요.')
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(window.location.href)
+        copied = true
+      }
+    } catch { /* Use the legacy fallback below. */ }
+
+    if (!copied) {
+      const textarea = document.createElement('textarea')
+      textarea.value = window.location.href
+      textarea.readOnly = true
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      textarea.style.pointerEvents = 'none'
+      document.body.appendChild(textarea)
+      try {
+        textarea.select()
+        textarea.setSelectionRange(0, textarea.value.length)
+        copied = document.execCommand('copy')
+      } catch { /* Show the manual-copy guidance below. */ }
+      finally { textarea.remove() }
     }
+
+    setCopyStatus(copied ? '링크를 복사했습니다.' : '주소창의 링크를 직접 복사해 주세요.')
   }
   const share = async () => {
     if (navigator.share) {
-      await navigator.share({ title: `${wedding.groom.name} ♡ ${wedding.bride.name}, 결혼합니다`, url: window.location.href })
+      try {
+        await navigator.share({ title: `${wedding.groom.name} ♡ ${wedding.bride.name}, 결혼합니다`, url: window.location.href })
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          setCopyStatus('공유를 취소했습니다.')
+          return
+        }
+        await copyLink()
+      }
     } else {
       await copyLink()
     }
