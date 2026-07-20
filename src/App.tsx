@@ -32,6 +32,11 @@ function App() {
       : route.kind === 'home'
         ? `${wedding.groom.name} ♡ ${wedding.bride.name} 모바일 청첩장`
         : '페이지를 찾을 수 없습니다'
+
+    const themeColor = route.kind === 'concept'
+      ? { letter: '#faefec', cinema: '#171513', poster: '#064ec5' }[themeBySlug[route.concept.slug]]
+      : '#faefec'
+    document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute('content', themeColor)
   }, [route])
 
   return (
