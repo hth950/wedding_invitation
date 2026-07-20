@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { concepts, type Concept } from './data/concepts'
-import { february2027, getDday, wedding } from './data/wedding'
+import { february2027, getDday, getTogetherDays, wedding } from './data/wedding'
 import { resolveRoute } from './lib/routes'
 
 type Theme = 'letter' | 'cinema' | 'poster'
@@ -176,7 +176,6 @@ function Invitation({ concept }: { concept: Concept }) {
           <SectionHead number="03" eyebrow="The day" title={isLetter ? '예식 안내' : '우리의 결혼식'} simple={isLetter} />
           <div className="date-lockup"><strong>02</strong><i>/</i><strong>20</strong><span>{isLetter ? <>토요일<br />오후 2시</> : <>Saturday<br />2:00 PM</>}</span></div>
           <Calendar />
-          {isLetter && <p className="dday-label">함께한 시간</p>}
           <p className="dday">{getDday()}</p>
         </section>
 
@@ -220,6 +219,12 @@ function Invitation({ concept }: { concept: Concept }) {
           <details><summary>신랑 측 연락처 및 계좌 <span>+</span></summary><p>연락처와 계좌 정보 입력 예정입니다. 샘플 화면에는 개인정보를 표시하지 않습니다.</p></details>
           <details><summary>신부 측 연락처 및 계좌 <span>+</span></summary><p>연락처와 계좌 정보 입력 예정입니다. 샘플 화면에는 개인정보를 표시하지 않습니다.</p></details>
           <details><summary>{isLetter ? '축하화환 보내기' : '축하 화환 및 메시지'} <span>+</span></summary><p>신청 방식과 전달 문구를 결정한 뒤 연결할 예정입니다.</p></details>
+        </section>
+
+        <section className="section together-section">
+          <SectionHead number="08" eyebrow="Since 2019" title="함께한 시간" simple={isLetter} />
+          <p className="together-date">{wedding.relationship.metDateLabel}, 처음 만난 날</p>
+          <p className="together-count">{getTogetherDays()}</p>
         </section>
 
         <section className="section snap-section">

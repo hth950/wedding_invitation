@@ -1,4 +1,6 @@
 export const WEDDING_DATE_ISO = '2027-02-20T14:00:00+09:00'
+export const MET_DATE_ISO = '2019-07-09'
+export const MET_DATE_LABEL = '2019년 7월 9일'
 
 export const wedding = {
   groom: {
@@ -17,6 +19,10 @@ export const wedding = {
     location: '안양역 인근',
     venue: '상세 예식장명 입력 예정',
     address: '상세 주소 입력 예정',
+  },
+  relationship: {
+    metDate: MET_DATE_ISO,
+    metDateLabel: MET_DATE_LABEL,
   },
   invitation: [
     '서로의 평범한 하루를 가장 다정하게 바라보던 두 사람이',
@@ -47,6 +53,14 @@ export function getDday(now = new Date()): string {
   if (days === 0) return '오늘, 저희 결혼합니다'
   if (days > 0) return `결혼식까지 D-${days}`
   return `함께한 지 D+${Math.abs(days)}`
+}
+
+export function getTogetherDays(now = new Date()): string {
+  const [metYear, metMonth, metDate] = MET_DATE_ISO.split('-').map(Number)
+  const metDay = Date.UTC(metYear, metMonth - 1, metDate)
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+  const inclusiveDays = Math.floor((today - metDay) / 86_400_000) + 1
+  return `함께한 지 D+${inclusiveDays}`
 }
 
 export const february2027 = Array.from({ length: 28 }, (_, index) => index + 1)

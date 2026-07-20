@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { february2027, getDday, wedding, WEDDING_DATE_ISO } from './wedding'
+import {
+  february2027,
+  getDday,
+  getTogetherDays,
+  MET_DATE_ISO,
+  MET_DATE_LABEL,
+  wedding,
+  WEDDING_DATE_ISO,
+} from './wedding'
 
 describe('wedding content', () => {
   it('uses the confirmed couple, date, and safe venue placeholder', () => {
@@ -19,5 +27,13 @@ describe('wedding content', () => {
     expect(getDday(new Date('2027-02-19T10:00:00+09:00'))).toBe('결혼식까지 D-1')
     expect(getDday(new Date('2027-02-20T10:00:00+09:00'))).toBe('오늘, 저희 결혼합니다')
     expect(february2027.at(-1)).toBe(28)
+  })
+
+  it('counts the confirmed first day together as D+1', () => {
+    expect(MET_DATE_ISO).toBe('2019-07-09')
+    expect(MET_DATE_LABEL).toBe('2019년 7월 9일')
+    expect(wedding.relationship.metDate).toBe(MET_DATE_ISO)
+    expect(getTogetherDays(new Date('2019-07-09T12:00:00+09:00'))).toBe('함께한 지 D+1')
+    expect(getTogetherDays(new Date('2026-07-20T12:00:00+09:00'))).toBe('함께한 지 D+2569')
   })
 })

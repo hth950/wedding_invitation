@@ -143,7 +143,6 @@ img { display: block; max-width: 100%; }
 .days .wedding-day { position: relative; z-index: 1; color: white; font-weight: 900; }
 .days .wedding-day::before { position: absolute; z-index: -1; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); content: ''; }
 .dday { margin: 18px 0 0; color: var(--accent); font-size: 15px; font-weight: 900; text-align: center; }
-.dday-label { margin: 30px 0 0; color: var(--ink); font-size: 16px; letter-spacing: .08em; text-align: center; }
 .gallery-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; }
 .gallery-grid button { min-height: 113px; padding: 0; overflow: hidden; border: 0; background: var(--line); }
 .gallery-grid img { width: 100%; height: 100%; aspect-ratio: 1; object-fit: cover; transition: transform .2s; }
@@ -176,6 +175,9 @@ img { display: block; max-width: 100%; }
 .message-section summary::-webkit-details-marker { display: none; }
 .message-section details[open] summary span { transform: rotate(45deg); }
 .message-section details p { margin: 0 0 22px; color: var(--muted); font-size: 14px; line-height: 1.75; }
+.together-section { text-align: center; }
+.together-date { margin: 0; color: var(--muted); font: 16px/1.8 var(--serif); }
+.together-count { margin: 16px 0 0; color: var(--accent); font: 400 34px/1.25 var(--serif); letter-spacing: -.03em; }
 .snap-section { text-align: center; }
 .snap-badge { display: inline-flex; padding: 7px 10px; border: 1px solid var(--line); border-radius: 99px; color: var(--accent); font-size: 9px; font-weight: 900; letter-spacing: .12em; }
 .snap-section h2 { margin: 22px 0 12px; font: 400 40px var(--serif); }
@@ -240,6 +242,9 @@ img { display: block; max-width: 100%; }
 .theme-letter .map-buttons small { font-size: 10px; }
 .theme-letter .message-section summary { position: relative; justify-content: center; padding: 0 44px; text-align: center; }
 .theme-letter .message-section summary span { position: absolute; right: 15px; }
+.theme-letter .together-section { padding-top: 122px; padding-bottom: 122px; }
+.theme-letter .together-date { font-size: 16px; }
+.theme-letter .together-count { margin-top: 18px; font-size: 36px; }
 .theme-letter .snap-section h2 { font-size: 29px; letter-spacing: .09em; }
 .theme-letter .share-section h2 { margin-top: 0; }
 .theme-letter .invitation-footer { border-top: 0; font-size: 11px; text-align: center; }
