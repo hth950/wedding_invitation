@@ -27,4 +27,3 @@ networks:
   internal:
     name: wedding-invitation-internal
     driver: bridge
-    internal: true
