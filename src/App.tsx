@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent, type SyntheticEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type SyntheticEvent } from 'react'
 import { concepts, type Concept } from './data/concepts'
 import { february2027, getDday, getTogetherDays, wedding } from './data/wedding'
 import { createAsyncStartGuard, createSingleRetryGate } from './lib/async-start-guard'
+import { getNextContactSide, type ContactSide } from './lib/contact-tabs'
 import { readLargeTextPreference, writeLargeTextPreference } from './lib/preferences'
 import { resolveRoute } from './lib/routes'
 
@@ -20,8 +21,8 @@ const heroByTheme: Record<Theme, string> = {
 }
 
 const themeCopy = {
-  letter: { eyebrow: 'A letter for our favorite people', chapter: '첫빛의 편지', edition: 'Romantic paper edition' },
-  cinema: { eyebrow: 'Our moment', chapter: '우리의 순간', edition: 'A moving photo letter' },
+  letter: { eyebrow: 'Our moment', chapter: '우리의 순간', edition: 'A moving photo letter' },
+  cinema: { eyebrow: 'A letter for our favorite people', chapter: '첫빛의 편지', edition: 'Romantic paper edition' },
   poster: { eyebrow: 'Taehwan & Hyojin', chapter: 'Our beginning', edition: 'Wedding journal · 2027' },
 } as const
 
@@ -138,7 +139,7 @@ function useWeddingMusic() {
     contextRef.current = context
     try {
       const output = context.createGain()
-      output.gain.value = 0.035
+      output.gain.value = 0.016
       output.connect(context.destination)
       await resumeAudioContext(context, reason === 'autoplay' ? 900 : undefined)
       if (context.state !== 'running') throw new DOMException('Autoplay blocked', 'NotAllowedError')
@@ -172,6 +173,7 @@ function useWeddingMusic() {
             const audio = new Audio(localSource)
             audio.loop = true
             audio.preload = 'auto'
+            audio.volume = 0.18
             audioRef.current = audio
             try {
               await audio.play()
@@ -346,7 +348,6 @@ function Invitation({ concept }: { concept: Concept }) {
   const [tab, setTab] = useState<'transit' | 'parking' | 'gift'>('transit')
   const [copyStatus, setCopyStatus] = useState('')
   const [rsvpStatus, setRsvpStatus] = useState('')
-  const [contactStatus, setContactStatus] = useState('')
   const [largeText, setLargeText] = useState(readLargeTextPreference)
   const music = useWeddingMusic()
   const mainRef = useRef<HTMLElement>(null)
@@ -479,7 +480,7 @@ function Invitation({ concept }: { concept: Concept }) {
           <p className="couple-sign"><strong>{wedding.groom.name}</strong><span>그리고</span><strong>{wedding.bride.name}</strong></p>
         </section>
 
-        {theme === 'cinema' && <MovingCollage />}
+        {theme === 'letter' && <MovingPhotoRail />}
 
         <section className="section couple-section reveal">
           <SectionHead number="02" eyebrow="About us" title="저희 커플을 소개합니다" simple={isPaper} />
@@ -498,11 +499,10 @@ function Invitation({ concept }: { concept: Concept }) {
                 <span>{isPorto ? 'BRIDE' : wedding.bride.role}</span>
                 <strong>{wedding.bride.name}</strong>
                 <p>소개 문구 입력 예정</p>
-                <button className="contact-pill" type="button" aria-describedby="bride-contact-status" onClick={() => setContactStatus('연락처를 입력한 뒤 전화 기능을 연결할 예정입니다.')}>연락하기</button>
-                <p id="bride-contact-status" className="contact-status" role="status">{contactStatus || '연락처 입력 후 연결될 예정입니다.'}</p>
               </div>
             </article>
           </div>
+          <CelebrationContact />
         </section>
 
         <section className="section day-section reveal">
@@ -596,13 +596,13 @@ function Invitation({ concept }: { concept: Concept }) {
   )
 }
 
-function MovingCollage() {
+function MovingPhotoRail() {
   const [paused, setPaused] = useState(false)
   const photos = [
-    { className: 'moment-photo--main', src: '/images/wedding/00028.webp', alt: '나란히 선 황태환과 하효진' },
-    { className: 'moment-photo--groom', src: '/images/wedding/01108.webp', alt: '창가에서 촬영한 황태환' },
-    { className: 'moment-photo--bride', src: '/images/wedding/00371.webp', alt: '꽃을 든 하효진' },
-    { className: 'moment-photo--wide', src: '/images/wedding/00187.webp', alt: '밝은 공간에 함께 앉아 있는 두 사람' },
+    { src: '/images/wedding/00028.webp', alt: '나란히 선 황태환과 하효진' },
+    { src: '/images/wedding/01108.webp', alt: '창가에서 촬영한 황태환' },
+    { src: '/images/wedding/00371.webp', alt: '꽃을 든 하효진' },
+    { src: '/images/wedding/00187.webp', alt: '밝은 공간에 함께 앉아 있는 두 사람' },
   ]
 
   return (
@@ -612,20 +612,87 @@ function MovingCollage() {
         <h2 id="moment-title">moment</h2>
         <span>둘이 함께여서 더 선명한 장면들</span>
       </header>
-      <div className={`moment-collage${paused ? ' is-paused' : ''}`} onContextMenu={preventImageDownload} onDragStart={preventImageDownload}>
-        {photos.map((photo) => (
-          <figure className={`moment-photo ${photo.className}`} key={photo.src}>
-            <img src={photo.src} alt={photo.alt} loading="lazy" draggable={false} />
-          </figure>
-        ))}
-        <span className="moment-flower moment-flower--one" aria-hidden="true">✿</span>
-        <span className="moment-flower moment-flower--two" aria-hidden="true">✿</span>
-        <p aria-hidden="true">we&apos;re<br />getting married</p>
+      <div className="photo-rail__viewport" onContextMenu={preventImageDownload} onDragStart={preventImageDownload}>
+        <div className={`photo-rail__track${paused ? ' is-paused' : ''}`}>
+          {[false, true].map((duplicate) => (
+            <div className="photo-rail__group" aria-hidden={duplicate || undefined} key={duplicate ? 'duplicate' : 'original'}>
+              {photos.map((photo) => (
+                <figure className="photo-rail__card" key={`${duplicate ? 'duplicate-' : ''}${photo.src}`}>
+                  <img src={photo.src} alt={duplicate ? '' : photo.alt} loading="lazy" draggable={false} />
+                </figure>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
       <button className="motion-toggle" type="button" aria-pressed={paused} onClick={() => setPaused((current) => !current)}>
         {paused ? '움직임 재생' : '움직임 멈춤'}
       </button>
     </section>
+  )
+}
+
+function CelebrationContact() {
+  const [open, setOpen] = useState(false)
+  const [side, setSide] = useState<ContactSide>('groom')
+  const toggleRef = useRef<HTMLButtonElement>(null)
+  const groomTabRef = useRef<HTMLButtonElement>(null)
+  const brideTabRef = useRef<HTMLButtonElement>(null)
+  const tabs = { groom: groomTabRef, bride: brideTabRef }
+  const peopleBySide = {
+    groom: [
+        { relation: '본인', name: wedding.groom.name },
+        { relation: '아버지', name: '성함 입력 예정' },
+        { relation: '어머니', name: '성함 입력 예정' },
+      ],
+    bride: [
+        { relation: '본인', name: wedding.bride.name },
+        { relation: '아버지', name: '성함 입력 예정' },
+        { relation: '어머니', name: '성함 입력 예정' },
+      ],
+  } as const
+
+  const selectTab = (next: ContactSide, focus = false) => {
+    setSide(next)
+    if (focus) window.requestAnimationFrame(() => tabs[next].current?.focus())
+  }
+  const onTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    const next = getNextContactSide(side, event.key)
+    if (!next) return
+    event.preventDefault()
+    selectTab(next, true)
+  }
+  const close = () => {
+    setOpen(false)
+    window.requestAnimationFrame(() => toggleRef.current?.focus())
+  }
+
+  return (
+    <div className={`contact-accordion${open ? ' is-open' : ''}`}>
+      <button ref={toggleRef} className="contact-accordion__toggle" type="button" aria-expanded={open} aria-controls="celebration-contact-panel" onClick={() => setOpen((current) => !current)}>
+        <span>축하 연락하기</span><span aria-hidden="true">{open ? '−' : '+'}</span>
+      </button>
+      <div id="celebration-contact-panel" className="contact-accordion__panel" aria-hidden={!open}>
+        <div className="contact-accordion__inner">
+          <div className="contact-tabs" role="tablist" aria-label="축하 연락 대상 선택">
+            <button ref={groomTabRef} id="contact-tab-groom" role="tab" type="button" aria-selected={side === 'groom'} aria-controls="contact-panel-groom" tabIndex={open && side === 'groom' ? 0 : -1} onKeyDown={onTabKeyDown} onClick={() => selectTab('groom')}>신랑에게</button>
+            <button ref={brideTabRef} id="contact-tab-bride" role="tab" type="button" aria-selected={side === 'bride'} aria-controls="contact-panel-bride" tabIndex={open && side === 'bride' ? 0 : -1} onKeyDown={onTabKeyDown} onClick={() => selectTab('bride')}>신부에게</button>
+          </div>
+          {(['groom', 'bride'] as const).map((panelSide) => (
+            <div id={`contact-panel-${panelSide}`} className="contact-tabpanel" role="tabpanel" aria-labelledby={`contact-tab-${panelSide}`} hidden={side !== panelSide} key={panelSide}>
+              {peopleBySide[panelSide].map((person) => (
+                <article className="contact-person" key={`${panelSide}-${person.relation}`}>
+                  <div><span>{person.relation}</span><strong>{person.name}</strong><small>연락처 입력 예정</small></div>
+                  <div className="contact-person__actions"><button type="button" disabled>문자</button><button type="button" disabled>전화</button></div>
+                </article>
+              ))}
+            </div>
+          ))}
+          <p className="contact-privacy">연락처가 입력되기 전까지 문자와 전화 기능은 비활성화됩니다.</p>
+          <button className="contact-accordion__close" type="button" tabIndex={open ? 0 : -1} onClick={close}>닫기</button>
+        </div>
+      </div>
+    </div>
   )
 }
 

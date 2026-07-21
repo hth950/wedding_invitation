@@ -2,16 +2,16 @@ export const concepts = [
   {
     slug: 'concept-a',
     code: 'A',
-    title: 'First Light Letter',
-    koreanTitle: '첫빛의 편지',
-    summary: '아이보리 종이와 은은한 핑크빛에 담은 따뜻한 편지',
+    title: 'Our Moment Letter',
+    koreanTitle: '우리의 순간',
+    summary: '연한 핑크 종이 위 풀스크린 사진과 천천히 흐르는 순간을 담은 대표 시안',
   },
   {
     slug: 'concept-b',
     code: 'B',
-    title: 'Our Moving Moment',
-    koreanTitle: '움직이는 우리의 순간',
-    summary: '첫빛의 편지 위로 실제 사진이 두 장면처럼 움직이는 핑크 콜라주',
+    title: 'Quiet Paper Letter',
+    koreanTitle: '고요한 종이 편지',
+    summary: '아이보리 종이와 차분한 사진 배치에 집중한 정적인 편지 시안',
   },
   {
     slug: 'concept-c',
