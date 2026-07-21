@@ -97,6 +97,11 @@ function resumeAudioContext(context: AudioContext, timeoutMs?: number) {
   })
 }
 
+function closeAudioContext(context: AudioContext | null) {
+  if (!context || context.state === 'closed') return
+  void context.close().catch(() => {})
+}
+
 function useWeddingMusic() {
   const [playing, setPlaying] = useState(false)
   const [starting, setStarting] = useState(false)
@@ -115,7 +120,7 @@ function useWeddingMusic() {
     timerRef.current = null
     audioRef.current?.pause()
     audioRef.current = null
-    void contextRef.current?.close()
+    closeAudioContext(contextRef.current)
     contextRef.current = null
     playingRef.current = false
   }, [])
@@ -138,7 +143,7 @@ function useWeddingMusic() {
       await resumeAudioContext(context, reason === 'autoplay' ? 900 : undefined)
       if (context.state !== 'running') throw new DOMException('Autoplay blocked', 'NotAllowedError')
       if (disposedRef.current) {
-        void context.close()
+        closeAudioContext(context)
         if (contextRef.current === context) contextRef.current = null
         return
       }
@@ -149,7 +154,7 @@ function useWeddingMusic() {
       setPlaying(true)
       setStatus('잔잔한 배경음악을 재생합니다.')
     } catch (error) {
-      void context.close()
+      closeAudioContext(context)
       if (contextRef.current === context) contextRef.current = null
       throw error
     }
