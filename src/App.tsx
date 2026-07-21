@@ -457,9 +457,9 @@ function Invitation({ concept }: { concept: Concept }) {
       />
       <main ref={mainRef} id="main-content" className="invitation">
         <header className="hero">
-          {isPaper
+          {theme === 'cinema'
             ? <p className="hero-occasion">{wedding.ceremony.shortDate}<span aria-hidden="true">·</span>결혼합니다</p>
-            : <div className="hero-topline"><span>{copy.eyebrow}</span><span>2027</span></div>}
+            : isPorto && <div className="hero-topline"><span>{copy.eyebrow}</span><span>2027</span></div>}
           <div className="hero-photo-wrap">
             <img className="hero-photo" src={heroByTheme[theme]} alt="웨딩 촬영 중 서로를 바라보는 황태환과 하효진" />
             <span className="hero-photo-mark" aria-hidden="true">T · H</span>
@@ -474,16 +474,17 @@ function Invitation({ concept }: { concept: Concept }) {
         </header>
 
         <section id="invitation-message" className="section invitation-message reveal">
-          <SectionHead number="01" eyebrow="Invitation" title="소중한 분들을 초대합니다" simple={isPaper} />
+          <SectionHead number="01" eyebrow="Invitation" title="소중한 분들을 초대합니다" simple={theme === 'cinema'} />
           <p className="script-line">{copy.chapter}</p>
           <div className="invitation-lines">{wedding.invitation.map((line) => <p key={line}>{line}</p>)}</div>
           <p className="couple-sign"><strong>{wedding.groom.name}</strong><span>그리고</span><strong>{wedding.bride.name}</strong></p>
+          {theme === 'letter' && <CelebrationContact compact />}
         </section>
 
         {theme === 'letter' && <MovingPhotoRail />}
 
         <section className="section couple-section reveal">
-          <SectionHead number="02" eyebrow="About us" title="저희 커플을 소개합니다" simple={isPaper} />
+          <SectionHead number="02" eyebrow="About us" title="저희 커플을 소개합니다" simple={theme === 'cinema'} />
           <div className="couple-cards">
             <article className="profile-card reveal-child">
               <img src="/images/wedding/01108.webp" alt="정원 창가에서 촬영한 신랑 황태환" loading="lazy" />
@@ -502,18 +503,18 @@ function Invitation({ concept }: { concept: Concept }) {
               </div>
             </article>
           </div>
-          <CelebrationContact />
+          {theme === 'letter' ? <CoupleInterview /> : <CelebrationContact />}
         </section>
 
         <section className="section day-section reveal">
-          <SectionHead number="03" eyebrow="The day" title={isPaper ? '예식 안내' : '우리의 결혼식'} simple={isPaper} />
+          <SectionHead number="03" eyebrow="The day" title={isPaper ? '예식 안내' : '우리의 결혼식'} simple={theme === 'cinema'} />
           <div className="date-lockup"><strong>02</strong><i>/</i><strong>20</strong><span>{isPaper ? <>토요일<br />오후 2시</> : <>Saturday<br />2:00 PM</>}</span></div>
           <Calendar />
           <p className="dday">{getDday()}</p>
         </section>
 
         <section className="section gallery-section reveal">
-          <SectionHead number="04" eyebrow="Our moments" title={isPaper ? '갤러리' : '기억하고 싶은 장면들'} simple={isPaper} />
+          <SectionHead number="04" eyebrow="Our moments" title={isPaper ? '갤러리' : '기억하고 싶은 장면들'} simple={theme === 'cinema'} />
           <div className="gallery-grid" onContextMenu={preventImageDownload} onDragStart={preventImageDownload}>
             {wedding.gallery.slice(0, galleryExpanded ? 12 : isPorto ? 5 : 9).map((photo, index) => (
               <button type="button" onClick={() => openLightbox(index)} key={photo.src} aria-label={`${photo.alt} 크게 보기`}>
@@ -525,7 +526,7 @@ function Invitation({ concept }: { concept: Concept }) {
         </section>
 
         <section className="section venue-section reveal">
-          <SectionHead number="05" eyebrow="Location" title="오시는 길" simple={isPaper} />
+          <SectionHead number="05" eyebrow="Location" title="오시는 길" simple={theme === 'cinema'} />
           <div className="venue-card">
             <span className="venue-pin" aria-hidden="true">●</span>
             <p>{wedding.ceremony.location}</p>
@@ -542,13 +543,13 @@ function Invitation({ concept }: { concept: Concept }) {
         </section>
 
         <section className="section rsvp-section reveal">
-          <SectionHead number="06" eyebrow="RSVP" title={isPaper ? '참석 여부 전달' : '참석 여부를 알려주세요'} simple={isPaper} />
+          <SectionHead number="06" eyebrow="RSVP" title={isPaper ? '참석 여부 전달' : '참석 여부를 알려주세요'} simple={theme === 'cinema'} />
           <p>더 나은 예식 준비를 위한 예시 기능입니다. 지금 입력한 정보는 저장되거나 전송되지 않습니다.</p>
           <button className="primary-button" type="button" onClick={openRsvp}>참석 여부 전달하기 <span aria-hidden="true">→</span></button>
         </section>
 
         <section className="section message-section reveal">
-          <SectionHead number="07" eyebrow="With love" title="마음 전하실 곳" simple={isPaper} />
+          <SectionHead number="07" eyebrow="With love" title="마음 전하실 곳" simple={theme === 'cinema'} />
           <div className="gift-message">
             <p>멀리서 축하의 마음을<br />전하고 싶으신 분들을 위해<br />계좌번호를 안내드립니다.</p>
             <span aria-hidden="true">✿</span>
@@ -559,14 +560,15 @@ function Invitation({ concept }: { concept: Concept }) {
         </section>
 
         <section className="section together-section reveal">
-          <SectionHead number="08" eyebrow="Since 2019" title="함께한 시간" simple={isPaper} />
+          <SectionHead number="08" eyebrow="Since 2019" title="함께한 시간" simple={theme === 'cinema'} />
           <p className="together-date">{wedding.relationship.metDateLabel}, 처음 만난 날</p>
           <p className="together-count">{getTogetherDays()}</p>
         </section>
 
         <section className="section snap-section reveal">
-          {!isPaper && <div className="snap-badge">COMING ON THE WEDDING DAY</div>}
-          <h2>{isPaper ? 'GUEST SNAP' : 'Guest Snap'}</h2>
+          {theme === 'letter'
+            ? <SectionHead number="09" eyebrow="Guest snap" title="하객 사진 올리기" />
+            : <>{!isPaper && <div className="snap-badge">COMING ON THE WEDDING DAY</div>}<h2>{isPaper ? 'GUEST SNAP' : 'Guest Snap'}</h2></>}
           <p>하객 여러분이 담아주신 순간을 한곳에 모으는 기능입니다. 현재 Google Drive 연결을 준비하고 있습니다.</p>
           <div className="snap-guide reveal-child">
             <h3>안내</h3>
@@ -581,7 +583,9 @@ function Invitation({ concept }: { concept: Concept }) {
         </section>
 
         <section className="section share-section reveal">
-          {!isPaper && <p>Share our day</p>}<h2>소중한 분께<br />초대장을 전해주세요.</h2>
+          {theme === 'letter'
+            ? <SectionHead number="10" eyebrow="Share" title="초대장 전하기" />
+            : <>{!isPaper && <p>Share our day</p>}<h2>소중한 분께<br />초대장을 전해주세요.</h2></>}
           <div><button type="button" onClick={share}>공유하기</button><button type="button" onClick={copyLink}>링크 복사</button></div>
           <button type="button" className="kakao-pending" disabled>카카오 초대장 공유 · Developers 키 연결 예정</button>
           <p className="copy-status" role="status">{copyStatus}</p>
@@ -597,7 +601,6 @@ function Invitation({ concept }: { concept: Concept }) {
 }
 
 function MovingPhotoRail() {
-  const [paused, setPaused] = useState(false)
   const photos = [
     { src: '/images/wedding/00028.webp', alt: '나란히 선 황태환과 하효진' },
     { src: '/images/wedding/01108.webp', alt: '창가에서 촬영한 황태환' },
@@ -610,10 +613,9 @@ function MovingPhotoRail() {
       <header className="moment-heading">
         <p aria-hidden="true">our</p>
         <h2 id="moment-title">moment</h2>
-        <span>둘이 함께여서 더 선명한 장면들</span>
       </header>
-      <div className="photo-rail__viewport" onContextMenu={preventImageDownload} onDragStart={preventImageDownload}>
-        <div className={`photo-rail__track${paused ? ' is-paused' : ''}`}>
+      <div className="photo-rail__viewport" tabIndex={0} aria-label="자동으로 흐르는 웨딩 사진. 초점을 두면 움직임이 멈춥니다." onContextMenu={preventImageDownload} onDragStart={preventImageDownload}>
+        <div className="photo-rail__track">
           {[false, true].map((duplicate) => (
             <div className="photo-rail__group" aria-hidden={duplicate || undefined} key={duplicate ? 'duplicate' : 'original'}>
               {photos.map((photo) => (
@@ -625,14 +627,11 @@ function MovingPhotoRail() {
           ))}
         </div>
       </div>
-      <button className="motion-toggle" type="button" aria-pressed={paused} onClick={() => setPaused((current) => !current)}>
-        {paused ? '움직임 재생' : '움직임 멈춤'}
-      </button>
     </section>
   )
 }
 
-function CelebrationContact() {
+function CelebrationContact({ compact = false }: { compact?: boolean }) {
   const [open, setOpen] = useState(false)
   const [side, setSide] = useState<ContactSide>('groom')
   const toggleRef = useRef<HTMLButtonElement>(null)
@@ -670,7 +669,12 @@ function CelebrationContact() {
   return (
     <div className={`contact-accordion${open ? ' is-open' : ''}`}>
       <button ref={toggleRef} className="contact-accordion__toggle" type="button" aria-expanded={open} aria-controls="celebration-contact-panel" onClick={() => setOpen((current) => !current)}>
-        <span>축하 연락하기</span><span aria-hidden="true">{open ? '−' : '+'}</span>
+        {compact
+          ? <span className="contact-accordion__compact-label">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7.1 3.4 9.9 8 8.2 9.8c1.3 2.5 3.4 4.6 5.9 5.9l1.8-1.7 4.7 2.8-.7 3.2c-.2.8-.9 1.4-1.8 1.4A15.5 15.5 0 0 1 2.6 5.9c0-.9.6-1.6 1.4-1.8l3.1-.7Z" /></svg>
+              <span>연락하기</span>
+            </span>
+          : <><span>축하 연락하기</span><span aria-hidden="true">{open ? '−' : '+'}</span></>}
       </button>
       <div id="celebration-contact-panel" className="contact-accordion__panel" aria-hidden={!open}>
         <div className="contact-accordion__inner">
@@ -690,6 +694,44 @@ function CelebrationContact() {
           ))}
           <p className="contact-privacy">연락처가 입력되기 전까지 문자와 전화 기능은 비활성화됩니다.</p>
           <button className="contact-accordion__close" type="button" tabIndex={open ? 0 : -1} onClick={close}>닫기</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const interviewQuestions = [
+  '서로의 첫인상은 어땠나요?',
+  '결혼을 결심한 계기가 있다면?',
+  '함께 이루고 싶은 일은 무엇인가요?',
+] as const
+
+function CoupleInterview() {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className={`interview-accordion${open ? ' is-open' : ''}`}>
+      <button className="interview-accordion__toggle" type="button" aria-expanded={open} aria-controls="couple-interview-panel" onClick={() => setOpen((current) => !current)}>
+        <span>{open ? '접기' : '더보기'}</span>
+        <svg aria-hidden="true" viewBox="0 0 20 20"><path d="m4 7 6 6 6-6" /></svg>
+      </button>
+      <div id="couple-interview-panel" className="interview-accordion__panel" aria-hidden={!open}>
+        <div className="interview-accordion__inner">
+          <header className="interview-heading">
+            <p>Interview</p>
+            <h3>우리에게 물었습니다</h3>
+          </header>
+          <div className="interview-questions">
+            {interviewQuestions.map((question, index) => (
+              <section className="interview-question" aria-labelledby={`interview-question-${index + 1}`} key={question}>
+                <h4 id={`interview-question-${index + 1}`}><span>Q{index + 1}.</span> {question}</h4>
+                <div className="interview-answer">
+                  <p><strong>신랑 {wedding.groom.name}</strong><span>답변 입력 예정</span></p>
+                  <p><strong>신부 {wedding.bride.name}</strong><span>답변 입력 예정</span></p>
+                </div>
+              </section>
+            ))}
+          </div>
         </div>
       </div>
     </div>
