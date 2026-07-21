@@ -17,3 +17,18 @@ export function createAsyncStartGuard() {
     },
   }
 }
+
+export function createSingleRetryGate() {
+  let claimed = false
+
+  return {
+    get claimed() {
+      return claimed
+    },
+    claim(): boolean {
+      if (claimed) return false
+      claimed = true
+      return true
+    },
+  }
+}

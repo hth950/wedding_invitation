@@ -9,16 +9,16 @@ export const concepts = [
   {
     slug: 'concept-b',
     code: 'B',
-    title: 'Midnight Cinema',
-    koreanTitle: '미드나이트 시네마',
-    summary: '차콜과 옥스블러드, 영화의 장면처럼 이어지는 초대',
+    title: 'Our Moving Moment',
+    koreanTitle: '움직이는 우리의 순간',
+    summary: '첫빛의 편지 위로 실제 사진이 두 장면처럼 움직이는 핑크 콜라주',
   },
   {
     slug: 'concept-c',
     code: 'C',
-    title: 'Anyang Modern Poster',
-    koreanTitle: '안양 모던 포스터',
-    summary: '코발트와 레드, 날짜와 길찾기를 선명하게 보여주는 포스터',
+    title: 'Mist Blue Journal',
+    koreanTitle: '미스트 블루 저널',
+    summary: '아이보리와 옅은 블루, 둥근 사진 카드로 엮은 차분한 웨딩 저널',
   },
 ] as const
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createAsyncStartGuard } from './async-start-guard'
+import { createAsyncStartGuard, createSingleRetryGate } from './async-start-guard'
 
 describe('async start guard', () => {
   it('accepts only one start until the active attempt settles', async () => {
@@ -19,5 +19,16 @@ describe('async start guard', () => {
     await expect(first).resolves.toBe(true)
     await expect(guard.run(async () => {})).resolves.toBe(true)
     expect(guard.busy).toBe(false)
+  })
+})
+
+describe('single retry gate', () => {
+  it('allows only the first user-activation retry', () => {
+    const gate = createSingleRetryGate()
+
+    expect(gate.claimed).toBe(false)
+    expect(gate.claim()).toBe(true)
+    expect(gate.claim()).toBe(false)
+    expect(gate.claimed).toBe(true)
   })
 })
